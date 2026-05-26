@@ -1,0 +1,72 @@
+name: download
+conda_env: conda.yml
+
+entry_points:
+  main:
+    parameters:
+
+      out_dir:
+        description: "Directory where files are downloaded"
+        type: string
+
+
+      extract_root:
+        description: "Root directory where archives are extracted"
+        type: string
+
+        default: "."
+
+
+      force_download:
+        description: "Force re-download even if file already exists"
+        type: string
+
+        default: "False"
+
+
+      dataset_url:
+        description: "Optional custom dataset URL (must be paired with dataset_filename and dataset_md5)"
+        type: string
+
+        default: "None"
+
+
+      dataset_filename:
+        description: "Optional custom downloaded filename (must be paired with dataset_url and dataset_md5)"
+        type: string
+
+        default: "None"
+
+
+      dataset_md5:
+        description: "Optional custom MD5 checksum (must be paired with dataset_url and dataset_filename)"
+        type: string
+
+        default: "None"
+
+
+      dataset_extract_to:
+        description: "Optional extraction path relative to extract_root for custom archive"
+        type: string
+
+        default: "None"
+
+
+
+    command: >-
+      python run.py
+
+        --out_dir {out_dir}
+
+        --extract_root {extract_root}
+
+        --force_download {force_download}
+
+        --dataset_url {dataset_url}
+
+        --dataset_filename {dataset_filename}
+
+        --dataset_md5 {dataset_md5}
+
+        --dataset_extract_to {dataset_extract_to}
+

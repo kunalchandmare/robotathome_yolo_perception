@@ -1,0 +1,16 @@
+name: robotathome_yolo_perception
+conda_env: conda.yml
+
+entry_points:
+  main:
+    parameters:
+      steps:
+        description: "Comma-separated list of steps to execute, or 'all'"
+        type: str
+        default: all
+      hydra_options:
+        description: "Hydra overrides passed directly, e.g. etl.min_price=5"
+        type: str
+        default: ""
+    command: "python main.py main.steps={steps} {hydra_options}"
+

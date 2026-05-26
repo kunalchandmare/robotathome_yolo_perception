@@ -1,0 +1,93 @@
+name: annotation_convert
+conda_env: conda.yml
+
+entry_points:
+  main:
+    parameters:
+
+      rh_path:
+        description: "Root Robot@Home path (e.g., data/)"
+        type: string
+
+
+      rgbd_path:
+        description: "Path to RGBD files directory"
+        type: string
+
+
+      scene_path:
+        description: "Path to scene files directory"
+        type: string
+
+
+      output_root:
+        description: "Output path of YOLO formatted images and labels"
+        type: string
+
+        default: "yolo"
+
+
+      rgbd_root:
+        description: "Root path used to preserve RGBD relative folder structure"
+        type: string
+
+
+      epsilon_ratio:
+        description: "Polygon simplification factor for mask-to-YOLO conversion"
+        type: float
+
+        default: "0.002"
+
+
+      labels_root:
+        description: "Label directory to remap instance ids to semantic ids"
+        type: string
+
+        default: "yolo/labels"
+
+
+      mapping_json:
+        description: "JSON mapping file updated/used during remap"
+        type: string
+
+        default: "yolo/class_id_to_name.json"
+
+
+      name_mode:
+        description: "Robot@Home name mode passed to id2name during remap"
+        type: string
+
+        default: "ot"
+
+
+      backup:
+        description: "Whether to keep .bak label files before remap overwrite"
+        type: string
+
+        default: "True"
+
+
+
+    command: >-
+      python run.py
+
+        --rh_path {rh_path}
+
+        --rgbd_path {rgbd_path}
+
+        --scene_path {scene_path}
+
+        --output_root {output_root}
+
+        --rgbd_root {rgbd_root}
+
+        --epsilon_ratio {epsilon_ratio}
+
+        --labels_root {labels_root}
+
+        --mapping_json {mapping_json}
+
+        --name_mode {name_mode}
+
+        --backup {backup}
+

@@ -1,0 +1,20 @@
+# config.yaml — Project-level configuration
+# Copy this file, fill in your values, and pass to the template agent.
+
+# Required: project name
+project_name: "robotathome_yolo_perception"
+
+# Artifact backend: mlflow (default) | dvc | wandb
+artifact_backend: "dvc"
+
+# MLflow version
+mlflow_version: "2.14.1"
+
+# --- Only when artifact_backend = "wandb" ---
+# wandb_entity: "myteam"
+# wandb_project: "my_ml_project"
+# wandb_version: "0.17.0"
+
+# --- Required when artifact_backend = "dvc" ---
+dvc_remote: "C:/Data/Python Projects/robotathome_yolo_perception/dvc"
+

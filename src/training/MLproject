@@ -1,0 +1,97 @@
+name: training
+conda_env: conda.yml
+
+entry_points:
+  main:
+    parameters:
+
+      dataset_root:
+        description: "Split dataset root used for training"
+        type: string
+
+
+      output_root:
+        description: "Directory for run artifacts and metrics"
+        type: string
+
+        default: "output"
+
+
+      mapping_json:
+        description: "class_id_to_name.json used to populate data.yaml (YOLO metadata) names"
+        type: string
+
+
+      model_name:
+        description: "Base segmentation model name"
+        type: string
+
+        default: "yolo11s-seg.pt"
+
+
+      run_name:
+        description: "Run name under output/runs"
+        type: string
+
+        default: "robotathome_seg_strat"
+
+
+      epochs:
+        description: "Number of training epochs"
+        type: float
+
+        default: "50"
+
+
+      imgsz:
+        description: "Input image size"
+        type: float
+
+        default: "640"
+
+
+      batch:
+        description: "Batch size (-1 enables AutoBatch)"
+        type: float
+
+        default: "-1"
+
+
+      device:
+        description: "GPU device index"
+        type: float
+
+        default: "0"
+
+
+      workers:
+        description: "Data loader workers"
+        type: float
+
+        default: "10"
+
+
+
+    command: >-
+      python run.py
+
+        --dataset_root {dataset_root}
+
+        --output_root {output_root}
+
+        --mapping_json {mapping_json}
+
+        --model_name {model_name}
+
+        --run_name {run_name}
+
+        --epochs {epochs}
+
+        --imgsz {imgsz}
+
+        --batch {batch}
+
+        --device {device}
+
+        --workers {workers}
+

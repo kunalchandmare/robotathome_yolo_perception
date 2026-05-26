@@ -1,0 +1,47 @@
+main:
+  steps: all
+  experiment_name: dev
+  project_name: robotathome_yolo_perception
+  artifact_backend: dvc
+  mlflow_version: 2.14.1
+  dvc_remote: C:\Data\Repos\dvc\robotathome_yolo_perception
+download:
+  out_dir: ''
+  extract_root: .
+  force_download: false
+  dataset_url: "https://zenodo.org/record/7811795/files/Robot@Home2_db.tgz"
+  dataset_filename: "Robot@Home2_db.tgz"
+  dataset_md5: "d34fb44c01f31c87be8ab14e5ecd0767"
+  dataset_extract_to: "data"
+annotation_convert:
+  rh_path: ''
+  rgbd_path: ''
+  scene_path: ''
+  output_root: yolo
+  rgbd_root: ''
+  epsilon_ratio: 0.002
+  labels_root: yolo/labels
+  mapping_json: yolo/class_id_to_name.json
+  name_mode: ot
+  backup: true
+split:
+  source_root: ''
+  output_root: yolo_split_stratified
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+  seed: 42
+  image_exts: .jpg,.jpeg,.png
+  use_stratified: true
+  rare_threshold: 20
+training:
+  dataset_root: ''
+  output_root: output
+  mapping_json: ''
+  model_name: yolo11s-seg.pt
+  run_name: robotathome_seg_strat
+  epochs: 50
+  imgsz: 640
+  batch: -1
+  device: 0
+  workers: 10

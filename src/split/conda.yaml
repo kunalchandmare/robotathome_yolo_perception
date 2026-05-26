@@ -1,0 +1,10 @@
+name: create-env-generated
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      - pandas==2.3.3
+      - tqdm==4.67.3

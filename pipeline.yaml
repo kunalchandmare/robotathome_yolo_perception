@@ -1,0 +1,163 @@
+# pipeline.yaml — Robot perception pipeline
+# Component: reusable download stage
+# Steps: project-specific annotation conversion, split, and training
+steps:
+  download:
+    description: "Download and extract Robot@Home archives or one custom source"
+    arguments:
+      out_dir:
+        type: str
+        required: true
+        description: "Directory where files are downloaded"
+      extract_root:
+        type: str
+        default: "."
+        description: "Root directory where archives are extracted"
+      force_download:
+        type: bool
+        default: false
+        description: "Force re-download even if file already exists"
+      dataset_url:
+        type: str
+        default: null
+        description: "Optional custom dataset URL (must be paired with dataset_filename and dataset_md5)"
+      dataset_filename:
+        type: str
+        default: null
+        description: "Optional custom downloaded filename (must be paired with dataset_url and dataset_md5)"
+      dataset_md5:
+        type: str
+        default: null
+        description: "Optional custom MD5 checksum (must be paired with dataset_url and dataset_filename)"
+      dataset_extract_to:
+        type: str
+        default: null
+        description: "Optional extraction path relative to extract_root for custom archive"
+
+  annotation_convert:
+    description: "Convert Robot@Home labels into YOLO format and remap class ids"
+    arguments:
+      rh_path:
+        type: str
+        required: true
+        description: "Root Robot@Home path (e.g., data/)"
+      rgbd_path:
+        type: str
+        required: true
+        description: "Path to RGBD files directory"
+      scene_path:
+        type: str
+        required: true
+        description: "Path to scene files directory"
+      output_root:
+        type: str
+        default: "yolo"
+        description: "Output path of YOLO formatted images and labels"
+      rgbd_root:
+        type: str
+        required: true
+        description: "Root path used to preserve RGBD relative folder structure"
+      epsilon_ratio:
+        type: float
+        default: 0.002
+        description: "Polygon simplification factor for mask-to-YOLO conversion"
+      labels_root:
+        type: str
+        default: "yolo/labels"
+        description: "Label directory to remap instance ids to semantic ids"
+      mapping_json:
+        type: str
+        default: "yolo/class_id_to_name.json"
+        description: "JSON mapping file updated/used during remap"
+      name_mode:
+        type: str
+        default: "ot"
+        description: "Robot@Home name mode passed to id2name during remap"
+      backup:
+        type: bool
+        default: true
+        description: "Whether to keep .bak label files before remap overwrite"
+
+  split:
+    description: "Split YOLO dataset into train/val/test"
+    arguments:
+      source_root:
+        type: str
+        required: true
+        description: "Source YOLO dataset root containing images/ and labels/"
+      output_root:
+        type: str
+        default: "yolo_split_stratified"
+        description: "Output split dataset root"
+      train_ratio:
+        type: float
+        default: 0.8
+        description: "Training split ratio"
+      val_ratio:
+        type: float
+        default: 0.1
+        description: "Validation split ratio"
+      test_ratio:
+        type: float
+        default: 0.1
+        description: "Test split ratio"
+      seed:
+        type: int
+        default: 42
+        description: "Random seed"
+      image_exts:
+        type: str
+        default: ".jpg,.jpeg,.png"
+        description: "Comma-separated image extensions to include"
+      use_stratified:
+        type: bool
+        default: true
+        description: "Use stratified split with rare-class handling"
+      rare_threshold:
+        type: int
+        default: 20
+        description: "Class frequency threshold treated as rare for stratified split"
+
+  training:
+    description: "Train and evaluate YOLO segmentation model"
+    arguments:
+      dataset_root:
+        type: str
+        required: true
+        description: "Split dataset root used for training"
+      output_root:
+        type: str
+        default: "output"
+        description: "Directory for run artifacts and metrics"
+      mapping_json:
+        type: str
+        required: true
+        description: "class_id_to_name.json used to populate data.yaml (YOLO metadata) names"
+      model_name:
+        type: str
+        default: "yolo11s-seg.pt"
+        description: "Base segmentation model name"
+      run_name:
+        type: str
+        default: "robotathome_seg_strat"
+        description: "Run name under output/runs"
+      epochs:
+        type: int
+        default: 50
+        description: "Number of training epochs"
+      imgsz:
+        type: int
+        default: 640
+        description: "Input image size"
+      batch:
+        type: int
+        default: -1
+        description: "Batch size (-1 enables AutoBatch)"
+      device:
+        type: int
+        default: 0
+        description: "GPU device index"
+      workers:
+        type: int
+        default: 10
+        description: "Data loader workers"
