@@ -5,34 +5,38 @@ steps:
   download:
     description: "Download and extract Robot@Home archives or one custom source"
     arguments:
-      out_dir:
-        type: str
-        required: true
-        description: "Directory where files are downloaded"
-      extract_root:
-        type: str
-        default: "."
-        description: "Root directory where archives are extracted"
-      force_download:
-        type: bool
-        default: false
-        description: "Force re-download even if file already exists"
-      dataset_url:
-        type: str
-        default: null
-        description: "Optional custom dataset URL (must be paired with dataset_filename and dataset_md5)"
-      dataset_filename:
-        type: str
-        default: null
-        description: "Optional custom downloaded filename (must be paired with dataset_url and dataset_md5)"
-      dataset_md5:
-        type: str
-        default: null
-        description: "Optional custom MD5 checksum (must be paired with dataset_url and dataset_filename)"
-      dataset_extract_to:
-        type: str
-        default: null
-        description: "Optional extraction path relative to extract_root for custom archive"
+      dataset_sources:
+        multiplicity: true
+        multiplicity_count: 2
+        args:
+          - out_dir:
+              type: str
+              required: true
+              description: "Directory where files are downloaded"
+            extract_root:
+              type: str
+              default: "."
+              description: "Root directory where archives are extracted"
+            force_download:
+              type: bool
+              default: false
+              description: "Force re-download even if file already exists"
+            dataset_url:
+              type: str
+              default: null
+              description: "Optional custom dataset URL (must be paired with dataset_filename and dataset_md5)"
+            dataset_filename:
+              type: str
+              default: null
+              description: "Optional custom downloaded filename (must be paired with dataset_url and dataset_md5)"
+            dataset_md5:
+              type: str
+              default: null
+              description: "Optional custom MD5 checksum (must be paired with dataset_url and dataset_filename)"
+            dataset_extract_to:
+              type: str
+              default: null
+              description: "Optional extraction path relative to extract_root for custom archive"
 
   annotation_convert:
     description: "Convert Robot@Home labels into YOLO format and remap class ids"
