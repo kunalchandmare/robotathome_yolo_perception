@@ -1,13 +1,16 @@
 name: annotation_convert
-conda_env: conda.yml
+conda_env: conda.yaml
 
 entry_points:
   main:
     parameters:
 
+
       rh_path:
         description: "Root Robot@Home path (e.g., data/)"
         type: string
+
+
 
 
       rgbd_path:
@@ -15,9 +18,13 @@ entry_points:
         type: string
 
 
+
+
       scene_path:
         description: "Path to scene files directory"
         type: string
+
+
 
 
       output_root:
@@ -27,9 +34,13 @@ entry_points:
         default: "yolo"
 
 
+
+
       rgbd_root:
         description: "Root path used to preserve RGBD relative folder structure"
         type: string
+
+
 
 
       epsilon_ratio:
@@ -39,11 +50,15 @@ entry_points:
         default: "0.002"
 
 
+
+
       labels_root:
         description: "Label directory to remap instance ids to semantic ids"
         type: string
 
         default: "yolo/labels"
+
+
 
 
       mapping_json:
@@ -53,11 +68,15 @@ entry_points:
         default: "yolo/class_id_to_name.json"
 
 
+
+
       name_mode:
         description: "Robot@Home name mode passed to id2name during remap"
         type: string
 
         default: "ot"
+
+
 
 
       backup:
@@ -69,25 +88,4 @@ entry_points:
 
 
     command: >-
-      python run.py
-
-        --rh_path {rh_path}
-
-        --rgbd_path {rgbd_path}
-
-        --scene_path {scene_path}
-
-        --output_root {output_root}
-
-        --rgbd_root {rgbd_root}
-
-        --epsilon_ratio {epsilon_ratio}
-
-        --labels_root {labels_root}
-
-        --mapping_json {mapping_json}
-
-        --name_mode {name_mode}
-
-        --backup {backup}
-
+      python run.py --rh_path {rh_path} --rgbd_path {rgbd_path} --scene_path {scene_path} --output_root {output_root} --rgbd_root {rgbd_root} --epsilon_ratio {epsilon_ratio} --labels_root {labels_root} --mapping_json {mapping_json} --name_mode {name_mode} --backup {backup}

@@ -1,13 +1,16 @@
 name: split
-conda_env: conda.yml
+conda_env: conda.yaml
 
 entry_points:
   main:
     parameters:
 
+
       source_root:
         description: "Source YOLO dataset root containing images/ and labels/"
         type: string
+
+
 
 
       output_root:
@@ -17,11 +20,15 @@ entry_points:
         default: "yolo_split_stratified"
 
 
+
+
       train_ratio:
         description: "Training split ratio"
         type: float
 
         default: "0.8"
+
+
 
 
       val_ratio:
@@ -31,11 +38,15 @@ entry_points:
         default: "0.1"
 
 
+
+
       test_ratio:
         description: "Test split ratio"
         type: float
 
         default: "0.1"
+
+
 
 
       seed:
@@ -45,6 +56,8 @@ entry_points:
         default: "42"
 
 
+
+
       image_exts:
         description: "Comma-separated image extensions to include"
         type: string
@@ -52,11 +65,15 @@ entry_points:
         default: ".jpg,.jpeg,.png"
 
 
+
+
       use_stratified:
         description: "Use stratified split with rare-class handling"
         type: string
 
         default: "True"
+
+
 
 
       rare_threshold:
@@ -68,23 +85,4 @@ entry_points:
 
 
     command: >-
-      python run.py
-
-        --source_root {source_root}
-
-        --output_root {output_root}
-
-        --train_ratio {train_ratio}
-
-        --val_ratio {val_ratio}
-
-        --test_ratio {test_ratio}
-
-        --seed {seed}
-
-        --image_exts {image_exts}
-
-        --use_stratified {use_stratified}
-
-        --rare_threshold {rare_threshold}
-
+      python run.py --source_root {source_root} --output_root {output_root} --train_ratio {train_ratio} --val_ratio {val_ratio} --test_ratio {test_ratio} --seed {seed} --image_exts {image_exts} --use_stratified {use_stratified} --rare_threshold {rare_threshold}

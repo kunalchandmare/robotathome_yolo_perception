@@ -5,9 +5,12 @@ entry_points:
   main:
     parameters:
 
+
       out_dir:
         description: "Directory where files are downloaded"
         type: string
+
+
 
 
       extract_root:
@@ -17,11 +20,15 @@ entry_points:
         default: "."
 
 
+
+
       force_download:
         description: "Force re-download even if file already exists"
         type: string
 
         default: "False"
+
+
 
 
       dataset_url:
@@ -31,6 +38,8 @@ entry_points:
         default: "None"
 
 
+
+
       dataset_filename:
         description: "Optional custom downloaded filename (must be paired with dataset_url and dataset_md5)"
         type: string
@@ -38,11 +47,15 @@ entry_points:
         default: "None"
 
 
+
+
       dataset_md5:
         description: "Optional custom MD5 checksum (must be paired with dataset_url and dataset_filename)"
         type: string
 
         default: "None"
+
+
 
 
       dataset_extract_to:
@@ -54,19 +67,4 @@ entry_points:
 
 
     command: >-
-      python run.py
-
-        --out_dir {out_dir}
-
-        --extract_root {extract_root}
-
-        --force_download {force_download}
-
-        --dataset_url {dataset_url}
-
-        --dataset_filename {dataset_filename}
-
-        --dataset_md5 {dataset_md5}
-
-        --dataset_extract_to {dataset_extract_to}
-
+      python run.py --out_dir {out_dir} --extract_root {extract_root} --force_download {force_download} --dataset_url {dataset_url} --dataset_filename {dataset_filename} --dataset_md5 {dataset_md5} --dataset_extract_to {dataset_extract_to}

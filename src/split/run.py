@@ -18,6 +18,9 @@ logger = logging.getLogger()
 
 
 def go(args):
+    # No multiplicity handling; all arguments are single set
+
+
 
     with mlflow.start_run():
         # --- Pull input artifact (DVC) ---
@@ -33,81 +36,81 @@ def go(args):
 
 
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Step: split")
 
-
-
+    
     parser.add_argument(
-        "--source_root", type=str, required=True,
+        "--source_root", type=str,
+        required=True,
         help="Source YOLO dataset root containing images/ and labels/"
     )
+    
 
-
-
-
+    
     parser.add_argument(
-        "--output_root", type=str, default="yolo_split_stratified",
+        "--output_root", type=str,
+        required=False,
         help="Output split dataset root"
     )
+    
 
-
-
-
+    
     parser.add_argument(
-        "--train_ratio", type=float, default=0.8,
+        "--train_ratio", type=float,
+        required=False,
         help="Training split ratio"
     )
+    
 
-
-
-
+    
     parser.add_argument(
-        "--val_ratio", type=float, default=0.1,
+        "--val_ratio", type=float,
+        required=False,
         help="Validation split ratio"
     )
+    
 
-
-
-
+    
     parser.add_argument(
-        "--test_ratio", type=float, default=0.1,
+        "--test_ratio", type=float,
+        required=False,
         help="Test split ratio"
     )
+    
 
-
-
-
+    
     parser.add_argument(
-        "--seed", type=int, default=42,
+        "--seed", type=int,
+        required=False,
         help="Random seed"
     )
+    
 
-
-
-
+    
     parser.add_argument(
-        "--image_exts", type=str, default=".jpg,.jpeg,.png",
+        "--image_exts", type=str,
+        required=False,
         help="Comma-separated image extensions to include"
     )
+    
 
-
-
-
+    
     parser.add_argument(
-        "--use_stratified", type=bool, default=True,
-        help="Use stratified split with rare-class handling"
+        "--use_stratified", type=lambda x: x.lower() == "true",
+        required=False,
+        help="Use stratified split with rare-class handling (true/false)"
     )
+    
 
-
-
-
+    
     parser.add_argument(
-        "--rare_threshold", type=int, default=20,
+        "--rare_threshold", type=int,
+        required=False,
         help="Class frequency threshold treated as rare for stratified split"
     )
-
-
+    
 
     args = parser.parse_args()
     go(args)
