@@ -4,15 +4,23 @@ main:
   project_name: robotathome_yolo_perception
   artifact_backend: dvc
   mlflow_version: 2.14.1
-  dvc_remote: C:\Data\Repos\dvc\robotathome_yolo_perception
+  dvc_remote: C:/Data/Python Projects/robotathome_yolo_perception/dvc
 download:
-  out_dir: ''
-  extract_root: .
-  force_download: false
-  dataset_url: "https://zenodo.org/record/7811795/files/Robot@Home2_db.tgz"
-  dataset_filename: "Robot@Home2_db.tgz"
-  dataset_md5: "d34fb44c01f31c87be8ab14e5ecd0767"
-  dataset_extract_to: "data"
+  dataset_sources:
+  - out_dir: 'C:\Users\fixc9dv\Downloads'
+    extract_root: 'data'
+    force_download: false
+    dataset_url: "https://zenodo.org/record/7811795/files/Robot@Home2_db.tgz"
+    dataset_filename: 'Robot@Home2_db.tgz'
+    dataset_md5: "d34fb44c01f31c87be8ab14e5ecd0767"
+    dataset_extract_to: 'data'
+  - out_dir: 'C:\Users\fixc9dv\Downloads'
+    extract_root: 'data'
+    force_download: false
+    dataset_url: "https://zenodo.org/record/7811795/files/Robot@Home2_files.tgz"
+    dataset_filename: "Robot@Home2_files.tgz"
+    dataset_md5: "36faa2ffdd936a14455b2d1f3075e6ca"
+    dataset_extract_to: 'data'
 annotation_convert:
   rh_path: ''
   rgbd_path: ''

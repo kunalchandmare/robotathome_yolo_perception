@@ -30,28 +30,30 @@ def go(config: DictConfig):
     # ── src/ steps ─────────────────────────────────────────────────────────────
 
     if "download" in active_steps:
-        mlflow.run(
-            os.path.join(hydra.utils.get_original_cwd(), "src", "download"),
-            "main",
-            env_manager="local",
-            parameters={
+        datasets = config["download"]["dataset_sources"]
+        for dataset in datasets:
+            mlflow.run(
+                os.path.join(hydra.utils.get_original_cwd(), "src", "download"),
+                "main",
+                env_manager="local",
+                parameters={
 
-                "out_dir": str(config["download"]["out_dir"]),
+                    "out_dir": str(dataset["out_dir"]),
 
-                "extract_root": str(config["download"]["extract_root"]),
+                    "extract_root": str(dataset["extract_root"]),
 
-                "force_download": str(config["download"]["force_download"]),
+                    "force_download": str(dataset["force_download"]),
 
-                "dataset_url": str(config["download"]["dataset_url"]),
+                    "dataset_url": str(dataset["dataset_url"]),
 
-                "dataset_filename": str(config["download"]["dataset_filename"]),
+                    "dataset_filename": str(dataset["dataset_filename"]),
 
-                "dataset_md5": str(config["download"]["dataset_md5"]),
+                    "dataset_md5": str(dataset["dataset_md5"]),
 
-                "dataset_extract_to": str(config["download"]["dataset_extract_to"]),
+                    "dataset_extract_to": str(dataset["dataset_extract_to"]),
 
-            },
-        )
+                },
+            )
 
 
     if "annotation_convert" in active_steps:

@@ -1,5 +1,5 @@
 name: download
-conda_env: conda.yml
+conda_env: conda.yaml
 
 entry_points:
   main:
