@@ -29,7 +29,7 @@ def go(args):
         force_download_flag = None
         if args.force_download:
             force_download_flag = True
-        elif args.no_force_download:
+        else:
             force_download_flag = False
 
         custom_fields = [args.dataset_url, args.dataset_filename, args.dataset_md5]
@@ -71,8 +71,9 @@ def go(args):
             print("=" * 60)
             rh_db.query_sample_annotation()
 
+        extract_path = Path(args.extract_root) / args.dataset_extract_to if args.dataset_extract_to else args.extract_root
         # --- Track and push output artifact (DVC) ---
-        subprocess.run(["dvc", "add", args.out_dir], check=True)
+        subprocess.run(["dvc", "add", extract_path.resolve()], check=True)
         # subprocess.run(["dvc", "push"], check=True)
 
         pass
@@ -136,6 +137,8 @@ if __name__ == "__main__":
         "--dataset_extract_to", type=str, default=None,
         help="Optional extraction path relative to extract_root for custom archive"
     )
+
+    parser.add_argument("--query-sample", action="store_true", help="Query and visualize a sample annotation")
 
 
 

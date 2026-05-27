@@ -8,7 +8,7 @@ from robotathome import RobotAtHome
 from robotathome import get_labeled_img
 from robotathome import log, logger
 
-from src.shared import align_all_masks
+from shared.utils import align_all_masks
 
 import matplotlib.pyplot as plt
 

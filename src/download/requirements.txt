@@ -1,4 +1,5 @@
 matplotlib==3.10.9
+mlflow==3.12.0
 numpy==2.4.4
 opencv-python==4.13.0.92
 robotathome==1.1.9

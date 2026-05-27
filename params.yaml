@@ -9,14 +9,12 @@ download:
   dataset_sources:
   - out_dir: 'C:\Users\fixc9dv\Downloads'
     extract_root: 'data'
-    force_download: false
     dataset_url: "https://zenodo.org/record/7811795/files/Robot@Home2_db.tgz"
     dataset_filename: 'Robot@Home2_db.tgz'
     dataset_md5: "d34fb44c01f31c87be8ab14e5ecd0767"
     dataset_extract_to: 'data'
   - out_dir: 'C:\Users\fixc9dv\Downloads'
     extract_root: 'data'
-    force_download: false
     dataset_url: "https://zenodo.org/record/7811795/files/Robot@Home2_files.tgz"
     dataset_filename: "Robot@Home2_files.tgz"
     dataset_md5: "36faa2ffdd936a14455b2d1f3075e6ca"
