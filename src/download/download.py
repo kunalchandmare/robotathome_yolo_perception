@@ -193,37 +193,11 @@ def query_sample_annotation():
     plt.show()
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Download and extract Robot@Home or one custom source")
-    parser.add_argument("--out-dir", type=str, default="data", help="Directory where files are downloaded")
-    parser.add_argument(
-        "--extract-root",
-        type=str,
-        default=None,
-        help="Root directory where archives are extracted (default: home directory)",
-    )
-    parser.add_argument("--force-download", action="store_true", help="Force re-download if file exists")
-    parser.add_argument("--no-force-download", action="store_true", help="Never re-download; reuse existing files")
-
-    # Custom source arguments (all 3 required together)
-    parser.add_argument("--dataset-url", type=str, default=None, help="Dataset URL")
-    parser.add_argument("--dataset-filename", type=str, default=None, help="Downloaded filename")
-    parser.add_argument("--dataset-md5", type=str, default=None, help="Expected MD5 checksum")
-    parser.add_argument(
-        "--dataset-extract-to",
-        type=str,
-        default=None,
-        help="Optional extract path relative to --extract-root (archive files only)",
-    )
-
-    parser.add_argument("--query-sample", action="store_true", help="Query and visualize a sample annotation")
-    args = parser.parse_args()
+def go(args):
 
     force_download_flag = None
-    if args.force_download:
-        force_download_flag = True
-    elif args.no_force_download:
-        force_download_flag = False
+    if args.force_download is not None:
+        force_download_flag = args.force_download
 
     custom_fields = [args.dataset_url, args.dataset_filename, args.dataset_md5]
     has_any_custom = any(v is not None for v in custom_fields)
@@ -257,6 +231,37 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Download failed: {e}")
         raise SystemExit(1)
+
+    pass
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Download and extract Robot@Home or one custom source")
+    parser.add_argument("--out-dir", type=str, default="data", help="Directory where files are downloaded")
+    parser.add_argument(
+        "--extract-root",
+        type=str,
+        default=None,
+        help="Root directory where archives are extracted (default: home directory)",
+    )
+    parser.add_argument("--force-download", action="store_true", help="Force re-download if file exists")
+    parser.add_argument("--no-force-download", action="store_true", help="Never re-download; reuse existing files")
+
+    # Custom source arguments (all 3 required together)
+    parser.add_argument("--dataset-url", type=str, default=None, help="Dataset URL")
+    parser.add_argument("--dataset-filename", type=str, default=None, help="Downloaded filename")
+    parser.add_argument("--dataset-md5", type=str, default=None, help="Expected MD5 checksum")
+    parser.add_argument(
+        "--dataset-extract-to",
+        type=str,
+        default=None,
+        help="Optional extract path relative to --extract-root (archive files only)",
+    )
+
+    parser.add_argument("--query-sample", action="store_true", help="Query and visualize a sample annotation")
+    args = parser.parse_args()
+
+    go(args)
 
     if args.query_sample:
         print("\n" + "=" * 60)
