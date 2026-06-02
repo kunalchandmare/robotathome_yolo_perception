@@ -4,7 +4,7 @@ main:
   project_name: robotathome_yolo_perception
   artifact_backend: dvc
   mlflow_version: 2.14.1
-  dvc_remote: C:/Data/Python Projects/robotathome_yolo_perception/dvc
+  dvc_remote: C:\Data\Repos\dvc\robotathome_yolo_perception
 download:
   dataset_sources:
   - out_dir: 'data'
