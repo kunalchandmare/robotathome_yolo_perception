@@ -7,20 +7,20 @@ main:
   dvc_remote: C:\Data\Repos\dvc\robotathome_yolo_perception
 download:
   dataset_sources:
-  - out_dir: 'data'
+  - out_dir: 'C:\Users\fixc9dv\Downloads'
     extract_root: 'data'
     force_download: false
     dataset_url: "https://zenodo.org/record/7811795/files/Robot@Home2_db.tgz"
     dataset_filename: "Robot@Home2_db.tgz"
     dataset_md5: "d34fb44c01f31c87be8ab14e5ecd0767"
-    dataset_extract_to: null
-  - out_dir: 'data'
+    dataset_extract_to: "."
+  - out_dir: 'C:\Users\fixc9dv\Downloads'
     extract_root: 'data'
     force_download: false
     dataset_url: "https://zenodo.org/record/7811795/files/Robot@Home2_files.tgz"
     dataset_filename: "Robot@Home2_files.tgz"
     dataset_md5: "36faa2ffdd936a14455b2d1f3075e6ca"
-    dataset_extract_to: null
+    dataset_extract_to: "files"
 annotation_convert:
   rh_path: ''
   rgbd_path: ''
