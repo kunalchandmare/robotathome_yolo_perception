@@ -6,6 +6,11 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
 
+def is_archive_file(filename: str) -> bool:
+    """Return True when filename looks like a compressed archive."""
+    archive_suffixes = (".zip", ".tar", ".tar.gz", ".tgz", ".gz", ".bz2", ".xz")
+    lower = filename.lower()
+    return any(lower.endswith(sfx) for sfx in archive_suffixes)
 
 def ensure_dir(path):
     Path(path).mkdir(parents=True, exist_ok=True)
@@ -18,6 +23,20 @@ def ask_yes_no(question: str, default: bool = False) -> bool:
         return default
 
     return reply in {"y", "yes"}
+
+
+def none_if_null(value):
+    """Normalize placeholders like '', 'None', and 'null' to None."""
+    if value is None:
+        return None
+    if isinstance(value, str):
+        text = value.strip()
+        if text.lower() in {"", "none", "null"}:
+            return None
+        if len(text) >= 2 and text[0] == text[-1] and text[0] in {"'", '"'}:
+            return text[1:-1]
+        return text
+    return value
 
 def align_all_masks_image(mask_list,image:np.ndarray):
     h, w = image.shape[:2]

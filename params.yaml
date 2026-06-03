@@ -1,6 +1,6 @@
 main:
   steps: all
-  experiment_name: dev
+  experiment_name: robotathome_perception_pipeline
   project_name: robotathome_yolo_perception
   artifact_backend: dvc
   mlflow_version: 2.14.1
@@ -19,7 +19,7 @@ download:
     force_download: false
     dataset_url: "https://zenodo.org/record/7811795/files/Robot@Home2_files.tgz"
     dataset_filename: "Robot@Home2_files.tgz"
-    dataset_md5: "36faa2ffdd936a14455b2d1f3075e6ca"
+    dataset_md5: "c55465536738ec3470c75e1671bab5f2"
     dataset_extract_to: "files"
 annotation_convert:
   rh_path: ''

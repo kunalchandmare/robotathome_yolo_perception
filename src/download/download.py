@@ -8,7 +8,7 @@ from robotathome import RobotAtHome
 from robotathome import get_labeled_img
 from robotathome import log, logger
 
-from shared.utils import align_all_masks
+from shared.utils import align_all_masks, none_if_null, is_archive_file, ask_yes_no
 
 import matplotlib.pyplot as plt
 
@@ -36,23 +36,6 @@ DEFAULT_ROBOTATHOME_SOURCES = [
 ]
 
 
-def is_archive_file(filename: str) -> bool:
-    """Return True when filename looks like a compressed archive."""
-    archive_suffixes = (".zip", ".tar", ".tar.gz", ".tgz", ".gz", ".bz2", ".xz")
-    lower = filename.lower()
-    return any(lower.endswith(sfx) for sfx in archive_suffixes)
-
-
-def ask_yes_no(question: str, default: bool = False) -> bool:
-    prompt = " [Y/n]: " if default else " [y/N]: "
-    reply = input(question + prompt).strip().lower()
-
-    if not reply:
-        return default
-
-    return reply in {"y", "yes"}
-
-
 def download_rh(out_dir, extract_root=None, force_download=None, source_specs=None):
     """
     Download and optionally extract one or more sources.
@@ -76,7 +59,11 @@ def download_rh(out_dir, extract_root=None, force_download=None, source_specs=No
 
     for item in source_specs:
         archive_path = out_dir / item["filename"]
-        extract_to = item.get("extract_to")
+        extract_to = none_if_null(item.get("extract_to"))
+        if is_archive_file(item["filename"]) and extract_to is None:
+            raise ValueError(
+                f"'extract_to' is required for archive '{item['filename']}' but was not provided."
+            )
         should_extract = is_archive_file(item["filename"]) and extract_to is not None
 
         should_download = True
@@ -131,9 +118,9 @@ def download_rh(out_dir, extract_root=None, force_download=None, source_specs=No
             print(f"Extracting {item['filename']} to {extract_path}...")
             rh.uncompress(str(archive_path), str(extract_path))
         elif is_archive_file(item["filename"]):
-            print(
-                f"Skipping extraction for archive {item['filename']} "
-                "(no extract_to provided)."
+            # This branch should not be reached since extract_to is enforced above.
+            raise ValueError(
+                f"Unexpected: archive '{item['filename']}' has no extract_to despite validation."
             )
 
         processed.append(item["filename"])
@@ -195,35 +182,29 @@ def query_sample_annotation():
 
 def go(args):
 
-    force_download_flag = None
-    if args.force_download is not None:
-        force_download_flag = args.force_download
+    out_dir = none_if_null(args.out_dir)
+    extract_root = none_if_null(args.extract_root)
+    dataset_url = none_if_null(args.dataset_url)
+    dataset_filename = none_if_null(args.dataset_filename)
+    dataset_md5 = none_if_null(args.dataset_md5)
+    dataset_extract_to = none_if_null(args.dataset_extract_to)
 
-    custom_fields = [args.dataset_url, args.dataset_filename, args.dataset_md5]
-    has_any_custom = any(v is not None for v in custom_fields)
-    has_all_required_custom = all(v is not None for v in custom_fields)
+    force_download_flag = args.force_download if args.force_download is not None else None
 
-    if has_any_custom and not has_all_required_custom:
-        parser.error("--dataset-url, --dataset-filename, and --dataset-md5 must be provided together.")
-
-    source_specs = None
-    if has_all_required_custom:
-        source_specs = [
-            {
-                "url": args.dataset_url,
-                "filename": args.dataset_filename,
-                "md5": args.dataset_md5,
-                **({"extract_to": args.dataset_extract_to} if args.dataset_extract_to else {}),
-            }
-        ]
-        print("Using one custom source from CLI arguments.")
-    else:
-        print("Using built-in Robot@Home default sources.")
+    source_specs = [
+        {
+            "url": dataset_url,
+            "filename": dataset_filename,
+            "md5": dataset_md5,
+            "extract_to": dataset_extract_to,
+        }
+    ]
+    print("Using one custom source from CLI arguments.")
 
     try:
         processed = download_rh(
-            out_dir=args.out_dir,
-            extract_root=args.extract_root,
+            out_dir=out_dir,
+            extract_root=extract_root,
             force_download=force_download_flag,
             source_specs=source_specs,
         )
@@ -247,15 +228,15 @@ if __name__ == "__main__":
     parser.add_argument("--force-download", action="store_true", help="Force re-download if file exists")
     parser.add_argument("--no-force-download", action="store_true", help="Never re-download; reuse existing files")
 
-    # Custom source arguments (all 3 required together)
-    parser.add_argument("--dataset-url", type=str, default=None, help="Dataset URL")
-    parser.add_argument("--dataset-filename", type=str, default=None, help="Downloaded filename")
-    parser.add_argument("--dataset-md5", type=str, default=None, help="Expected MD5 checksum")
+    # Custom source arguments — all required
+    parser.add_argument("--dataset-url", type=str, required=True, help="Dataset URL")
+    parser.add_argument("--dataset-filename", type=str, required=True, help="Downloaded filename")
+    parser.add_argument("--dataset-md5", type=str, required=True, help="Expected MD5 checksum")
     parser.add_argument(
         "--dataset-extract-to",
         type=str,
-        default=None,
-        help="Optional extract path relative to --extract-root (archive files only)",
+        required=True,
+        help="Extraction path relative to --extract-root (required for archive files)",
     )
 
     parser.add_argument("--query-sample", action="store_true", help="Query and visualize a sample annotation")
