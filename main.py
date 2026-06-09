@@ -7,6 +7,7 @@ Driven by Hydra config (params.yaml). Run with:
     mlflow run . -P hydra_options="training.epochs=20"
 """
 import os
+import sys
 import mlflow
 import hydra
 from omegaconf import DictConfig
@@ -101,4 +102,4 @@ def go(config: DictConfig):
         )
     # ── components/ ────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    go()
+    sys.exit(go())

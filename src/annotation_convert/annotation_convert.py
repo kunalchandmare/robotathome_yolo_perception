@@ -1,4 +1,5 @@
 from pathlib import Path
+import logging
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
@@ -6,8 +7,22 @@ from robotathome import RobotAtHome
 from tqdm import tqdm
 import argparse
 
-from src.shared.utils import ensure_dir, align_all_masks, plot_image, plot_mask_overlay, plot_yolo_bboxes, align_all_masks_image, \
+from shared.utils import ensure_dir, align_all_masks, plot_image, plot_mask_overlay, plot_yolo_bboxes, align_all_masks_image, \
     save_json, load_json
+
+
+LOG_DIR = Path(__file__).resolve().parents[2] / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+logger = logging.getLogger(__name__)
+if not logger.handlers:
+    file_handler = logging.FileHandler(LOG_DIR / "annotation_convert.log", encoding="utf-8")
+    file_handler.setLevel(logging.WARNING)
+    file_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+    logger.addHandler(file_handler)
+
+logger.setLevel(logging.WARNING)
+logger.propagate = False
 
 
 def prepare_binary_mask(mask):
@@ -89,7 +104,7 @@ def get_yolo_lines_for_observation(rh_db, obs_id, epsilon_ratio):
             if line:
                 label_lines.append(line)
     except Exception as e:
-        print(f"Failed to get RGBD files for obs_id={obs_id}: {e}")
+        logger.warning("Failed to get RGBD files for obs_id=%s: %s", obs_id, e)
         rgb_path = None
         image = None
         label_lines = []
@@ -124,37 +139,18 @@ def convert_df_to_yolo_seg(rh_db, output_root,rgbd_root, epsilon_ratio=0.002):
     observtions_df = rh_db.get_sensor_observations('lblrgbd')
 
     grouped = observtions_df.groupby("id")
+    skipped_count = 0
+    converted_count = 0
 
-    for obs_id, group in grouped:
-        # rgb_path, depth_path = rh_db.get_RGBD_files(obs_id)
-        #
-        # image = cv2.imread(str(rgb_path), cv2.IMREAD_COLOR)
-        # if image is None:
-        #     continue
-        #
-        # labels_with_masks = rh_db.get_RGBD_labels(obs_id)
-        # masks = labels_with_masks["mask"]
-        # aligned_masks = align_all_masks(masks, str(rgb_path))
-        #
-        # img_h, img_w = image.shape[:2]
-        # label_lines = []
-        #
-        # for (_, row), aligned_mask in zip(labels_with_masks.iterrows(), aligned_masks):
-        #     class_id = row["object_type_id"]
-        #     class_name = rh_db.id2name(class_id)
-        #
-        #     yolo_line = mask_to_yolo_polygon(
-        #         mask=aligned_mask,
-        #         class_id=class_id,
-        #         img_w=img_w,
-        #         img_h=img_h,
-        #         epsilon_ratio=epsilon_ratio,
-        #     )
-        #
-        #     if yolo_line is not None:
-        #         label_lines.append(yolo_line)
+    progress_bar = tqdm(grouped, total=grouped.ngroups, desc="Converting observations", unit="obs")
+    progress_bar.set_postfix(converted=converted_count, skipped=skipped_count)
+
+    for obs_id, _ in progress_bar:
+
         image, rgb_path, label_lines = get_yolo_lines_for_observation(rh_db, obs_id, epsilon_ratio)
         if image is None:
+            skipped_count += 1
+            progress_bar.set_postfix(converted=converted_count, skipped=skipped_count)
             continue
         relative_dir = Path(rgb_path).parent.relative_to(rgbd_root)
         final_img_dir = images_dir / relative_dir
@@ -171,6 +167,14 @@ def convert_df_to_yolo_seg(rh_db, output_root,rgbd_root, epsilon_ratio=0.002):
         with open(label_out, "w", encoding="utf-8") as f:
             if label_lines:
                 f.write("\n".join(label_lines) + "\n")
+
+        converted_count += 1
+        progress_bar.set_postfix(converted=converted_count, skipped=skipped_count)
+
+    print(
+        f"Finished converting observations. Converted: {converted_count}, "
+        f"Skipped: {skipped_count}, Total: {grouped.ngroups}"
+    )
 
 def replace_class_ids_with_names(label_lines, rh_db):
     """
@@ -307,23 +311,7 @@ def test_observation_visualization(rh_db, obs_id, epsilon_ratio=0.002):
     plt.tight_layout()
     plt.show()
 
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(
-        description="Convert Robot@Home annotations to YOLO and remap labels"
-    )
-    parser.add_argument("--rh_path", type=str, required=True, help="Root Robot@Home path")
-    parser.add_argument("--rgbd_path", type=str, required=True, help="Path to RGBD files directory")
-    parser.add_argument("--scene_path", type=str, required=True, help="Path to scene files directory")
-    parser.add_argument("--output_root", type=str, default="yolo", help="Output YOLO dataset root")
-    parser.add_argument("--rgbd_root", type=str, required=True, help="RGBD root used for relative folder structure")
-    parser.add_argument("--epsilon_ratio", type=float, default=0.002, help="Polygon simplification factor")
-    parser.add_argument("--labels_root", type=str, default="yolo/labels", help="Label directory to remap")
-    parser.add_argument("--mapping_json", type=str, default="yolo/class_id_to_name.json", help="Class mapping JSON")
-    parser.add_argument("--name_mode", type=str, default="ot", help="Robot@Home returns Object Type (ot) as Label")
-    parser.add_argument("--backup", type=bool, default=False, help="Whether to save .bak files")
-
-    args = parser.parse_args()
+def go(args):
 
     try:
         db = RobotAtHome(
@@ -338,7 +326,7 @@ if __name__ == "__main__":
     convert_df_to_yolo_seg(
         rh_db=db,
         output_root=args.output_root,
-        rgbd_root=Path(args.rgbd_root).resolve(),
+        rgbd_root=Path(args.yolo_rgbd_root).resolve(),
         epsilon_ratio=args.epsilon_ratio,
     )
 
@@ -351,3 +339,23 @@ if __name__ == "__main__":
     )
 
     save_json(semantic_id_to_name, args.mapping_json)
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(
+        description="Convert Robot@Home annotations to YOLO and remap labels"
+    )
+    parser.add_argument("--rh_path", type=str, required=True, help="Root Robot@Home path")
+    parser.add_argument("--rgbd_path", type=str, required=True, help="Path to RGBD files directory for Loading RobotAtHome")
+    parser.add_argument("--scene_path", type=str, required=True, help="Path to scene files directory")
+    parser.add_argument("--output_root", type=str, default="yolo", help="Output YOLO dataset root")
+    parser.add_argument("--yolo_rgbd_root", type=str, required=True, help="RGBD root used for relative folder structure in YOLO Dataset")
+    parser.add_argument("--epsilon_ratio", type=float, default=0.002, help="Polygon simplification factor")
+    parser.add_argument("--labels_root", type=str, default="yolo/labels", help="Label directory to remap")
+    parser.add_argument("--mapping_json", type=str, default="yolo/class_id_to_name.json", help="Class mapping JSON")
+    parser.add_argument("--name_mode", type=str, default="ot", help="Robot@Home returns Object Type (ot) as Label")
+    parser.add_argument("--backup", type=bool, default=False, help="Whether to save .bak files")
+
+    args = parser.parse_args()
+
+    go(args)
