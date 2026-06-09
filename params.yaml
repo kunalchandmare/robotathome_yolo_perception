@@ -22,11 +22,11 @@ download:
     dataset_md5: "c55465536738ec3470c75e1671bab5f2"
     dataset_extract_to: "files"
 annotation_convert:
-  rh_path: '..\..\data\rh.db'
+  rh_path: '..\..\data'
   rgbd_path: '..\..\data\files\rgbd'
   scene_path: '..\..\data\files\scene'
   output_root: '..\..\data\yolo'
-  yolo_rgbd_root: '..\..\data\yolo\rgbd'
+  yolo_rgbd_root: '..\..\data\files\rgbd'
   epsilon_ratio: 0.002
   labels_root: '..\..\data\yolo\labels'
   mapping_json: yolo/class_id_to_name.json
