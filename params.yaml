@@ -30,7 +30,7 @@ annotation_convert:
   labels_root: '..\..\data\yolo\labels'
   mapping_json: '..\..\data\yolo\class_id_to_name.json'
   name_mode: ot
-  force_convert: true
+  force_convert: false
   backup: true
 split:
   source_root: ''

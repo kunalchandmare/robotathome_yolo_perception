@@ -73,6 +73,10 @@ steps:
         type: str
         default: "ot"
         description: "Robot@Home name mode passed to id2name during remap"
+      force_convert:
+        type: bool
+        default: false
+        description: "Forced conversion and generation of JSON map even if files exists"
       backup:
         type: bool
         default: true
