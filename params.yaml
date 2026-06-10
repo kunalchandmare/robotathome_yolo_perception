@@ -26,7 +26,6 @@ annotation_convert:
   rgbd_path: '..\..\data\files\rgbd'
   scene_path: '..\..\data\files\scene'
   output_root: '..\..\data\yolo'
-  yolo_rgbd_root: '..\..\data\files\rgbd'
   epsilon_ratio: 0.002
   labels_root: '..\..\data\yolo\labels'
   mapping_json: yolo/class_id_to_name.json

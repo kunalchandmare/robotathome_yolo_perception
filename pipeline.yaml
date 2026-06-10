@@ -48,7 +48,7 @@ steps:
       rgbd_path:
         type: str
         required: true
-        description: "Path to RGBD files directory"
+        description: "Path to RGBD files directory for Loading RobotAtHome dataset"
       scene_path:
         type: str
         required: true
@@ -57,10 +57,6 @@ steps:
         type: str
         default: "yolo"
         description: "Output path of YOLO formatted images and labels"
-      rgbd_root:
-        type: str
-        required: true
-        description: "Root path used to preserve RGBD relative folder structure"
       epsilon_ratio:
         type: float
         default: 0.002
