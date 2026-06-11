@@ -7,6 +7,7 @@ Driven by Hydra config (params.yaml). Run with:
     mlflow run . -P hydra_options="training.epochs=20"
 """
 import os
+import sys
 import mlflow
 import hydra
 from omegaconf import DictConfig
@@ -54,11 +55,11 @@ def go(config: DictConfig):
                 "rgbd_path": str(step_cfg_runtime.get("rgbd_path", '')),
                 "scene_path": str(step_cfg_runtime.get("scene_path", '')),
                 "output_root": str(step_cfg_runtime.get("output_root", 'yolo')),
-                "rgbd_root": str(step_cfg_runtime.get("rgbd_root", '')),
                 "epsilon_ratio": str(step_cfg_runtime.get("epsilon_ratio", 0.002)),
                 "labels_root": str(step_cfg_runtime.get("labels_root", 'yolo/labels')),
                 "mapping_json": str(step_cfg_runtime.get("mapping_json", 'yolo/class_id_to_name.json')),
                 "name_mode": str(step_cfg_runtime.get("name_mode", 'ot')),
+                "force_convert": str(step_cfg_runtime.get("force_convert", False)),
                 "backup": str(step_cfg_runtime.get("backup", True)),
             },
         )
@@ -101,4 +102,4 @@ def go(config: DictConfig):
         )
     # ── components/ ────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    go()
+    sys.exit(go())
