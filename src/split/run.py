@@ -11,6 +11,8 @@ import logging
 import subprocess
 from pathlib import Path
 
+import yolo_data_split as data_split
+
 import mlflow
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
@@ -26,7 +28,7 @@ def go(args):
         # --- Pull input artifact (DVC) ---
         # subprocess.run(["dvc", "pull", "<file>.dvc"], check=True)
 
-        # TODO: implement step logic here
+        data_split.go(args)
 
         # --- Track and push output artifact (DVC) ---
         # subprocess.run(["dvc", "add", "<output_path>"], check=True)

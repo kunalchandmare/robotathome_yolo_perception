@@ -33,8 +33,8 @@ annotation_convert:
   force_convert: false
   backup: true
 split:
-  source_root: ''
-  output_root: yolo_split_stratified
+  source_root: '..\..\data\yolo'
+  output_root: '..\..\data\training'
   train_ratio: 0.8
   val_ratio: 0.1
   test_ratio: 0.1

@@ -7,7 +7,7 @@ from collections import Counter
 import pandas as pd
 from tqdm import tqdm
 
-from src.shared import utils
+from shared.utils import save_json
 
 
 def read_yolo_classes(label_path):
@@ -556,7 +556,7 @@ def export_split_review(
         "rows": df.to_dict(orient="records"),
     }
 
-    utils.save_json(report, json_path)
+    save_json(report, json_path)
 
     print(f"Saved CSV:  {csv_path}")
     print(f"Saved JSON: {json_path}")
@@ -586,7 +586,32 @@ def _parse_image_exts(value):
     return tuple(normalized)
 
 
-def create_arg_parser() -> argparse.ArgumentParser:
+def go(args) -> int:
+    source_root = Path(args.source_root).resolve()
+    output_root = Path(args.output_root).resolve()
+    train_ratio = args.train_ratio
+    val_ratio = args.val_ratio
+    test_ratio = args.test_ratio
+    seed = args.seed
+    image_exts = _parse_image_exts(args.image_exts)
+    use_stratified = args.use_stratified
+    rare_threshold = args.rare_threshold
+
+    split_yolo_dataset(
+        source_root=source_root,
+        output_root=output_root,
+        train_ratio=train_ratio,
+        val_ratio=val_ratio,
+        test_ratio=test_ratio,
+        seed=seed,
+        image_exts=image_exts,
+        use_stratified=use_stratified,
+        rare_threshold=rare_threshold,
+    )
+    return 0
+
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Split YOLO dataset into train/val/test folders")
     parser.add_argument("--source_root", type=str, required=True, help="Source YOLO dataset root")
     parser.add_argument("--output_root", type=str, default="yolo_split_stratified", help="Output split dataset root")
@@ -597,28 +622,9 @@ def create_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--image_exts", type=str, default=".jpg,.jpeg,.png", help="Comma-separated image extensions")
     parser.add_argument("--use_stratified", type=_str_to_bool, default=True, help="Use stratified split")
     parser.add_argument("--rare_threshold", type=int, default=20, help="Rare class threshold for stratified split")
-    return parser
 
+    args = parser.parse_args()
 
-def main(argv=None) -> int:
-    parser = create_arg_parser()
-    args = parser.parse_args(argv)
-
-    split_yolo_dataset(
-        source_root=Path(args.source_root).resolve(),
-        output_root=Path(args.output_root).resolve(),
-        train_ratio=args.train_ratio,
-        val_ratio=args.val_ratio,
-        test_ratio=args.test_ratio,
-        seed=args.seed,
-        image_exts=_parse_image_exts(args.image_exts),
-        use_stratified=args.use_stratified,
-        rare_threshold=args.rare_threshold,
-    )
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+    go(args)
 
 
