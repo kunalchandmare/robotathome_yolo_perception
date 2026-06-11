@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 """
-Pipeline step: training
+Reusable component: training
 
 Train and evaluate YOLO segmentation model
 
 """
 import argparse
 import logging
-
 import subprocess
-from pathlib import Path
+import sys
 
 import mlflow
 
@@ -20,25 +19,45 @@ logger = logging.getLogger()
 def go(args):
     # No multiplicity handling; all arguments are single set
 
+    
+        with mlflow.start_run():
+            mlflow.set_tag("component_name", "training")
+            try:
+                # --- Pull input artifact (DVC) ---
+                # input_artifact_path = "<input_path>"
+                # input_dvc_file = "<input_path>.dvc"  # TODO: set actual input DVC file
+                # logger.info(f"Pulling input artifact: {input_artifact_path}")
+                # subprocess.run(["dvc", "pull", input_dvc_file], check=True)
+                # mlflow.set_tag("input_artifact", input_artifact_path)
 
+                # TODO: implement component logic (keep it schema-agnostic)
 
-    with mlflow.start_run():
-        # --- Pull input artifact (DVC) ---
-        # subprocess.run(["dvc", "pull", "<file>.dvc"], check=True)
+                # --- Log metrics / params (MLflow tracking) ---
+                # mlflow.log_param("key", value)
+                # mlflow.log_metric("metric", value)
 
-        # TODO: implement step logic here
+                # --- Track and push output artifact (DVC) ---
+                # output_path = "<output_path>"  # TODO: set actual output path
+                # logger.info(f"Adding output artifact to DVC: {output_path}")
+                # subprocess.run(["dvc", "add", output_path], check=True)
+                # mlflow.set_tag("output_artifact", output_path)
+                # logger.info("Pushing output artifact to remote DVC storage")
+                # subprocess.run(["dvc", "push"], check=True)
 
-        # --- Track and push output artifact (DVC) ---
-        # subprocess.run(["dvc", "add", "<output_path>"], check=True)
-        # subprocess.run(["dvc", "push"], check=True)
+                # --- Optionally also log artifact path to MLflow ---
+                # mlflow.log_artifact(output_path)
 
-        pass
-
-
+            except subprocess.CalledProcessError as e:
+                logger.error(f"DVC command failed: {e}")
+                raise
+            except Exception as e:
+                logger.error(f"Unexpected error: {e}")
+                raise
+    
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Step: training")
+    parser = argparse.ArgumentParser(description="Component: training")
 
     
     parser.add_argument(
@@ -121,4 +140,4 @@ if __name__ == "__main__":
     
 
     args = parser.parse_args()
-    go(args)
+    sys.exit(go(args))
