@@ -14,7 +14,7 @@ entry_points:
 
 
       rgbd_path:
-        description: "Path to RGBD files directory"
+        description: "Path to RGBD files directory for Loading RobotAtHome dataset"
         type: string
 
 
@@ -32,13 +32,6 @@ entry_points:
         type: string
 
         default: "yolo"
-
-
-
-
-      rgbd_root:
-        description: "Root path used to preserve RGBD relative folder structure"
-        type: string
 
 
 
@@ -79,6 +72,15 @@ entry_points:
 
 
 
+      force_convert:
+        description: "Forced conversion and generation of JSON map even if files exists"
+        type: string
+
+        default: "False"
+
+
+
+
       backup:
         description: "Whether to keep .bak label files before remap overwrite"
         type: string
@@ -88,4 +90,4 @@ entry_points:
 
 
     command: >-
-      python run.py --rh_path {rh_path} --rgbd_path {rgbd_path} --scene_path {scene_path} --output_root {output_root} --rgbd_root {rgbd_root} --epsilon_ratio {epsilon_ratio} --labels_root {labels_root} --mapping_json {mapping_json} --name_mode {name_mode} --backup {backup}
+      python run.py --rh_path {rh_path} --rgbd_path {rgbd_path} --scene_path {scene_path} --output_root {output_root} --epsilon_ratio {epsilon_ratio} --labels_root {labels_root} --mapping_json {mapping_json} --name_mode {name_mode} --force_convert {force_convert} --backup {backup}

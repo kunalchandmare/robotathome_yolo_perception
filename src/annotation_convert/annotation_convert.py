@@ -118,8 +118,8 @@ def get_expected_output_paths(rh_db, output_root, rgbd_root):
     """Return expected YOLO image/label output paths via a single bulk DB query.
 
     Replaces the previous per-observation get_RGBD_files() loop (one SQL query
-    per obs_id) with one JOIN query over the full lblrgbd id range, which is
-    orders of magnitude faster.
+    per obs_id) with one bulk query over all labeled observations in the DB,
+    which is orders of magnitude faster.
 
     Bulk query data flow:
     - SQL returns one row per labeled RGBD observation with:
@@ -142,13 +142,15 @@ def get_expected_output_paths(rh_db, output_root, rgbd_root):
     # The loop below converts those source paths into relative output folders.
     sql = """
         SELECT
-            o.id,
+            f.id AS id,
             f.new_path  AS local_path,
             f.new_file_2 AS rgb_file
-        FROM rh2_sensor_observations AS o
-        JOIN rh2_old2new_rgbd_files   AS f ON f.id = o.id
-        WHERE o.id >= 100000 AND o.id < 200000
-        ORDER BY o.id
+        FROM (
+            SELECT DISTINCT sensor_observation_id AS id
+            FROM rh_lblrgbd_labels
+        ) AS l
+        JOIN rh2_old2new_rgbd_files AS f ON f.id = l.id
+        ORDER BY l.id
     """
     try:
         files_df = rh_db.query(sql)
@@ -259,13 +261,16 @@ def _bulk_fetch_file_paths(rh_db):
     # RobotAtHome RGBD root before returning the indexed DataFrame.
     sql = """
         SELECT
-            id,
+            f.id AS id,
             new_path     AS local_path,
             new_file_2   AS rgb_file,
             new_file_3   AS labels_file
-        FROM rh2_old2new_rgbd_files
-        WHERE id >= 100000 AND id < 200000
-        ORDER BY id
+        FROM (
+            SELECT DISTINCT sensor_observation_id AS id
+            FROM rh_lblrgbd_labels
+        ) AS l
+        JOIN rh2_old2new_rgbd_files AS f ON f.id = l.id
+        ORDER BY l.id
     """
     files_df = rh_db.query(sql)
     rgbd_base = str(rh_db._RobotAtHome__rgbd_path)
@@ -294,7 +299,6 @@ def _bulk_fetch_labels(rh_db):
     sql = """
         SELECT id, local_id, object_type_id, sensor_observation_id
         FROM rh_lblrgbd_labels
-        WHERE sensor_observation_id >= 100000 AND sensor_observation_id < 200000
     """
     labels_df = rh_db.query(sql)
     return {
@@ -320,6 +324,7 @@ def convert_df_to_yolo_seg(rh_db, output_root, rgbd_root, epsilon_ratio=0.002):
     output_root = Path(output_root)
     images_dir  = output_root / "images"
     labels_dir  = output_root / "labels"
+
     rgbd_root   = Path(rgbd_root)
 
     print("Pre-fetching file paths from DB (bulk)...")
