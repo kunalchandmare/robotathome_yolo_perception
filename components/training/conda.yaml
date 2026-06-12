@@ -9,5 +9,5 @@ dependencies:
       - matplotlib==3.10.9
       - pandas==2.3.3
       - pyyaml==6.0.3
+      - robotathome==1.1.9
       - ultralytics==8.4.43
-      - utils==1.0.2

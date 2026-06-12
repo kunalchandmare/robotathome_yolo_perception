@@ -43,9 +43,9 @@ split:
   use_stratified: true
   rare_threshold: 20
 training:
-  dataset_root: ''
-  output_root: output
-  mapping_json: ''
+  dataset_root: '..\..\data\training'
+  output_root: '..\..\data\results'
+  mapping_json: '..\..\data\yolo\class_id_to_name.json'
   model_name: yolo11s-seg.pt
   run_name: robotathome_seg_strat
   epochs: 50

@@ -2,6 +2,7 @@ from pathlib import Path
 import argparse
 import random
 import shutil
+import sys
 from collections import Counter
 
 import pandas as pd
@@ -62,7 +63,7 @@ def collect_image_label_pairs(images_root, labels_root, image_exts=(".jpg", ".jp
     missing_labels = []
 
     # Match images with labels and track progress
-    for img_path in tqdm(image_files, desc="Matching labels", unit="file"):
+    for img_path in tqdm(image_files, desc="Matching labels", unit="file", file=sys.stdout):
         rel_path = img_path.relative_to(images_root)
         label_path = labels_root / rel_path.with_suffix(".txt")
 
@@ -119,7 +120,7 @@ def build_image_class_map(pairs):
     image_to_classes = {}
     class_image_counts = Counter()
 
-    for img_path, label_path in tqdm(pairs, desc="Building class map", unit="file"):
+    for img_path, label_path in tqdm(pairs, desc="Building class map", unit="file", file=sys.stdout):
         classes = read_yolo_classes(label_path)
         image_to_classes[img_path] = classes
 
@@ -208,7 +209,7 @@ def stratified_split_pairs(
     2. Then fill remaining images normally using greedy class-aware assignment.
     """
     assert abs(train_ratio + val_ratio + test_ratio - 1.0) < 1e-9, "Ratios must sum to 1."
-    tqdm.write("Using stratified split...")
+    print("Using stratified split...", flush=True)
 
     image_to_classes, class_image_counts = build_image_class_map(pairs)
     rare_classes = identify_rare_classes(class_image_counts, rare_threshold=rare_threshold)
@@ -331,7 +332,7 @@ def copy_split_files(splits, images_root, labels_root, output_root):
     total_files = sum(len(pairs) for pairs in splits.values())
 
     # Copy files with progress tracking
-    with tqdm(total=total_files, desc="Copying files", unit="file") as pbar:
+    with tqdm(total=total_files, desc="Copying files", unit="file", file=sys.stdout) as pbar:
         for split_name, pairs in splits.items():
             for img_path, label_path in pairs:
                 rel_path = img_path.relative_to(images_root)
@@ -506,7 +507,8 @@ def export_split_review(
         for img_path, label_path in tqdm(
             pairs,
             desc=f"Reviewing {split_name}",
-            unit="file"
+            unit="file",
+            file=sys.stdout,
         ):
             classes = read_yolo_classes(label_path)
             for cls_id in classes:

@@ -122,6 +122,7 @@ steps:
         default: 20
         description: "Class frequency threshold treated as rare for stratified split"
 
+components:
   training:
     description: "Train and evaluate YOLO segmentation model"
     arguments:

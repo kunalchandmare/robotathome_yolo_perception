@@ -81,25 +81,25 @@ def go(config: DictConfig):
                 "rare_threshold": str(step_cfg_runtime.get("rare_threshold", 20)),
             },
         )
+    # ── components/ ────────────────────────────────────────────────────────────
     if "training" in active_steps:
-        step_cfg_runtime = config.get("training", {})
+        comp_cfg_runtime = config.get("training", {})
         mlflow.run(
-            os.path.join(hydra.utils.get_original_cwd(), "src", "training"),
+            os.path.join(hydra.utils.get_original_cwd(), "components", "training"),
             "main",
             env_manager="local",
             parameters={
-                "dataset_root": str(step_cfg_runtime.get("dataset_root", '')),
-                "output_root": str(step_cfg_runtime.get("output_root", 'output')),
-                "mapping_json": str(step_cfg_runtime.get("mapping_json", '')),
-                "model_name": str(step_cfg_runtime.get("model_name", 'yolo11s-seg.pt')),
-                "run_name": str(step_cfg_runtime.get("run_name", 'robotathome_seg_strat')),
-                "epochs": str(step_cfg_runtime.get("epochs", 50)),
-                "imgsz": str(step_cfg_runtime.get("imgsz", 640)),
-                "batch": str(step_cfg_runtime.get("batch", -1)),
-                "device": str(step_cfg_runtime.get("device", 0)),
-                "workers": str(step_cfg_runtime.get("workers", 10)),
+                "dataset_root": str(comp_cfg_runtime.get("dataset_root", '')),
+                "output_root": str(comp_cfg_runtime.get("output_root", 'output')),
+                "mapping_json": str(comp_cfg_runtime.get("mapping_json", '')),
+                "model_name": str(comp_cfg_runtime.get("model_name", 'yolo11s-seg.pt')),
+                "run_name": str(comp_cfg_runtime.get("run_name", 'robotathome_seg_strat')),
+                "epochs": str(comp_cfg_runtime.get("epochs", 50)),
+                "imgsz": str(comp_cfg_runtime.get("imgsz", 640)),
+                "batch": str(comp_cfg_runtime.get("batch", -1)),
+                "device": str(comp_cfg_runtime.get("device", 0)),
+                "workers": str(comp_cfg_runtime.get("workers", 10)),
             },
         )
-    # ── components/ ────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     sys.exit(go())
