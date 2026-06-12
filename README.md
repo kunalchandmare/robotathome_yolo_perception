@@ -1,9 +1,9 @@
 # YOLO Training Pipeline for Robot@Home Dataset
 
-YOLO instance segmentation pipeline trained on the [Robot@Home 2](https://zenodo.org/record/7811795) dataset.  
-Orchestrated with **MLflow Projects** and **Hydra**, tracked with **MLflow Tracking**, versioned with **DVC**.
+YOLO instance segmentation pipeline trained on the [Robot@Home 2](https://zenodo.org/record/7811795) dataset. Main Orchestrated with **MLflow Projects** and **Hydra**, tracked with **MLflow Tracking**, versioned with **DVC** but possibility to use **WandB**
 
 > **⚠️ Disclaimer:** This is a purely academic project created for research and experimentation purposes only. It is still in progress and not intended for production use.
+> Status: In Progress (Green: Individual Steps and Component works Yellow: Whole Piepeline, DVC versioning missing)
 
 <p float="centre">
   <img src="images/pipeline.png" width="100%" />
