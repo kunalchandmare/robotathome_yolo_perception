@@ -1,23 +1,25 @@
 from pathlib import Path
 import argparse
 import json
+import os
+from contextlib import contextmanager
 import yaml
 import pandas as pd
 import matplotlib.pyplot as plt
-from ultralytics import YOLO
+from ultralytics import YOLO, settings
 
-from src.shared.utils import ensure_dir, print_gpu_info
-
-
-def load_json(path):
-    """Load a JSON file and return its content as a Python dictionary."""
-    with open(Path(path), "r", encoding="utf-8") as f:
-        return json.load(f)
+from shared.utils import ensure_dir, print_gpu_info, load_json
 
 
 def load_class_names(mapping_json):
     """Load semantic id to class-name mapping from JSON and convert keys to int."""
-    mapping = load_json(mapping_json)
+    mapping_path = Path(mapping_json)
+    if mapping_path.is_dir():
+        raise IsADirectoryError(
+            f"mapping_json points to a directory: {mapping_path}. "
+            "Provide the JSON file path (for example: .../class_id_to_name.json)."
+        )
+    mapping = load_json(mapping_path)
     return {int(k): v for k, v in mapping.items()}
 
 
@@ -44,6 +46,25 @@ def build_data_yaml(dataset_root, names_dict, yaml_path):
 def load_segmentation_model(model_name="yolo11s-seg.pt"):
     """Load a pretrained YOLO segmentation model checkpoint."""
     return YOLO(model_name)
+
+
+def resolve_model_source(model_name, weights_root):
+    """Resolve bare model names to weights_root so downloaded .pt lands there."""
+    model_path = Path(model_name)
+    if model_path.is_absolute() or model_path.parent != Path('.'):
+        return str(model_path)
+    return str(Path(weights_root) / model_path.name)
+
+
+@contextmanager
+def _pushd(path):
+    """Temporarily switch CWD so any internal relative downloads land under path."""
+    prev = Path.cwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(prev)
 
 
 def train_segmentation_model(
@@ -233,49 +254,61 @@ def run_full_training_pipeline(
     workers=8,
 ):
     """Run the full training pipeline using prepared labels and JSON class mapping."""
-    dataset_root = Path(dataset_root)
-    output_root = Path(output_root)
+    dataset_root = Path(dataset_root).resolve()
+    output_root = Path(output_root).resolve()
+    mapping_json = Path(mapping_json).resolve()
     ensure_dir(output_root)
+    run_root = output_root / "runs"
+    model_root = dataset_root
+    ensure_dir(model_root)
 
-    names_dict = load_class_names(mapping_json)
+    with _pushd(dataset_root):
+        # Keep all Ultralytics artifacts under controlled folders.
+        settings.update({
+            "runs_dir": str(run_root),
+            "weights_dir": str(model_root),
+        })
 
-    yaml_path = build_data_yaml(
-        dataset_root=dataset_root,
-        names_dict=names_dict,
-        yaml_path=output_root / "data.yaml",
-    )
+        names_dict = load_class_names(mapping_json)
 
-    model = load_segmentation_model(model_name=model_name)
+        yaml_path = build_data_yaml(
+            dataset_root=dataset_root,
+            names_dict=names_dict,
+            yaml_path=output_root / "data.yaml",
+        )
 
-    print_gpu_info(device)
+        model_source = resolve_model_source(model_name, model_root)
+        model = load_segmentation_model(model_name=model_source)
 
-    train_segmentation_model(
-        model=model,
-        data_yaml=yaml_path,
-        project_dir=output_root / "runs",
-        run_name=run_name,
-        epochs=epochs,
-        imgsz=imgsz,
-        batch=batch,
-        device=device,
-        workers=workers,
-    )
+        print_gpu_info(device)
 
-    best_model_path = find_best_weights(output_root / "runs", run_name)
+        train_segmentation_model(
+            model=model,
+            data_yaml=yaml_path,
+            project_dir=run_root,
+            run_name=run_name,
+            epochs=epochs,
+            imgsz=imgsz,
+            batch=batch,
+            device=device,
+            workers=workers,
+        )
 
-    test_metrics = validate_on_test(
-        model_path=best_model_path,
-        data_yaml=yaml_path,
-        imgsz=imgsz,
-        batch=32,
-        device=device,
-        workers=workers,
-    )
+        best_model_path = find_best_weights(run_root, run_name)
+
+        test_metrics = validate_on_test(
+            model_path=best_model_path,
+            data_yaml=yaml_path,
+            imgsz=imgsz,
+            batch=32,
+            device=device,
+            workers=workers,
+        )
 
     summary = collect_metric_summary(test_metrics)
     save_metric_summary(summary, output_root)
 
-    df, _ = load_training_results_csv(output_root / "runs", run_name)
+    df, _ = load_training_results_csv(run_root, run_name)
     plot_training_curves(df, output_root)
 
 
@@ -292,26 +325,8 @@ def run_full_training_pipeline(
     }
 
 
-def create_arg_parser():
-    """Create CLI parser for training arguments defined in pipeline.yaml."""
-    parser = argparse.ArgumentParser(description="Train and evaluate YOLO segmentation model")
-    parser.add_argument("--dataset_root", type=str, required=True, help="Split dataset root used for training")
-    parser.add_argument("--output_root", type=str, default="output", help="Directory for run artifacts and metrics")
-    parser.add_argument("--mapping_json", type=str, required=True, help="class_id_to_name.json used to populate data.yaml names")
-    parser.add_argument("--model_name", type=str, default="yolo11s-seg.pt", help="Base segmentation checkpoint")
-    parser.add_argument("--run_name", type=str, default="robotathome_seg_strat", help="Run name under output/runs")
-    parser.add_argument("--epochs", type=int, default=50, help="Number of training epochs")
-    parser.add_argument("--imgsz", type=int, default=640, help="Input image size")
-    parser.add_argument("--batch", type=int, default=-1, help="Batch size (-1 enables AutoBatch)")
-    parser.add_argument("--device", type=int, default=0, help="CUDA device index")
-    parser.add_argument("--workers", type=int, default=10, help="Data loader workers")
-    return parser
 
-
-def main(argv=None) -> int:
-    """CLI entrypoint used by both script execution and tests."""
-    parser = create_arg_parser()
-    args = parser.parse_args(argv)
+def go(args) -> int:
 
     run_full_training_pipeline(
         dataset_root=args.dataset_root,
@@ -329,4 +344,19 @@ def main(argv=None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    parser = argparse.ArgumentParser(description="Train and evaluate YOLO segmentation model")
+    parser.add_argument("--dataset_root", type=str, required=True, help="Split dataset root used for training")
+    parser.add_argument("--output_root", type=str, default="output", help="Directory for run artifacts and metrics")
+    parser.add_argument("--mapping_json", type=str, required=True,
+                        help="class_id_to_name.json used to populate data.yaml names")
+    parser.add_argument("--model_name", type=str, default="yolo11s-seg.pt", help="Base segmentation checkpoint")
+    parser.add_argument("--run_name", type=str, default="robotathome_seg_strat", help="Run name under output/runs")
+    parser.add_argument("--epochs", type=int, default=50, help="Number of training epochs")
+    parser.add_argument("--imgsz", type=int, default=640, help="Input image size")
+    parser.add_argument("--batch", type=int, default=-1, help="Batch size (-1 enables AutoBatch)")
+    parser.add_argument("--device", type=int, default=0, help="CUDA device index")
+    parser.add_argument("--workers", type=int, default=10, help="Data loader workers")
+
+    args = parser.parse_args()
+
+    go(args)

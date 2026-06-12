@@ -9,7 +9,7 @@ import argparse
 import logging
 import subprocess
 import sys
-
+import training as train
 import mlflow
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
@@ -30,7 +30,7 @@ def go(args):
                 # subprocess.run(["dvc", "pull", input_dvc_file], check=True)
                 # mlflow.set_tag("input_artifact", input_artifact_path)
 
-                # TODO: implement component logic (keep it schema-agnostic)
+                train.go(args)
 
                 # --- Log metrics / params (MLflow tracking) ---
                 # mlflow.log_param("key", value)

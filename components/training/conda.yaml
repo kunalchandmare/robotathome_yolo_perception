@@ -1,0 +1,13 @@
+name: create-env-generated
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      - matplotlib==3.10.9
+      - pandas==2.3.3
+      - pyyaml==6.0.3
+      - robotathome==1.1.9
+      - ultralytics==8.4.43
