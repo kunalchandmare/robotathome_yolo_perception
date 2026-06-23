@@ -18,6 +18,7 @@ _steps = [
     "annotation_convert",
     "split",
     "training",
+    "inference",
 ]
 
 @hydra.main(version_base=None, config_name="params", config_path=".")
@@ -99,6 +100,22 @@ def go(config: DictConfig):
                 "batch": str(comp_cfg_runtime.get("batch", -1)),
                 "device": str(comp_cfg_runtime.get("device", 0)),
                 "workers": str(comp_cfg_runtime.get("workers", 10)),
+            },
+        )
+    if "inference" in active_steps:
+        comp_cfg_runtime = config.get("inference", {})
+        mlflow.run(
+            os.path.join(hydra.utils.get_original_cwd(), "components", "inference"),
+            "main",
+            env_manager="local",
+            parameters={
+                "source": str(comp_cfg_runtime.get("source", '')),
+                "output_dir": str(comp_cfg_runtime.get("output_dir", '')),
+                "model_path": str(comp_cfg_runtime.get("model_path", '')),
+                "mapping_json": str(comp_cfg_runtime.get("mapping_json", '')),
+                "conf_threshold": str(comp_cfg_runtime.get("conf_threshold", 0.25)),
+                "imgsz": str(comp_cfg_runtime.get("imgsz", 640)),
+                "device": str(comp_cfg_runtime.get("device", 0)),
             },
         )
 if __name__ == "__main__":

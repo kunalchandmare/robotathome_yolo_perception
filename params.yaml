@@ -53,3 +53,11 @@ training:
   batch: -1
   device: 0
   workers: 10
+inference:
+  source: ''
+  output_dir: ''
+  model_path: '..\..\data\results\runs\robotathome_seg_strat\weights\best.pt'
+  mapping_json: '..\..\data\yolo\class_id_to_name.json'
+  conf_threshold: 0.70
+  imgsz: 640
+  device: 0

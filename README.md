@@ -146,3 +146,39 @@ Data is versioned with DVC. Pull tracked data:
 dvc pull
 ```
 
+---
+
+## Inference Component
+
+The `inference` component runs YOLO segmentation on any source (images, video, webcam, RTSP stream) and outputs annotated frames with segmentation masks and class labels.
+
+### Model Path (`model_path`)
+
+The `model_path` parameter accepts multiple formats:
+
+| Format | Example | Notes |
+|---|---|---|
+| Local path | `C:\data\results\runs\robotathome_seg_strat\weights\best.pt` | Must exist locally |
+| HTTP/HTTPS URL | `https://example.com/models/best.pt` | Auto-downloaded by Ultralytics |
+| HuggingFace Hub | `hf://org/repo/best.pt` | Auto-downloaded by Ultralytics |
+| Cloud Storage (S3/GCS/Azure) | Pre-download with `dvc pull`, then use local path | DVC handles credentials |
+
+**Example:**
+```cmd
+python main.py main.steps=inference inference.model_path=..\..\data\results\runs\robotathome_seg_strat\weights\best.pt inference.source=sample_video.mp4 inference.output_dir=inference_output
+```
+
+### Annotation Module (`annotator.py`)
+
+Annotation logic is separated into a reusable module with:
+- **`colour_for(class_id)`** — assign distinct colours to classes
+- **`overlay_mask(img, mask, colour, alpha)`** — blend segmentation masks
+- **`draw_bbox_with_label(img, bbox, label, colour)`** — draw bounding boxes with class names
+- **`annotate_frame(frame, result, class_names, mask_alpha)`** — orchestrate all three
+
+Can be imported standalone:
+```python
+from components.inference.annotator import annotate_frame
+annotated = annotate_frame(frame, yolo_result, class_names)
+```
+
