@@ -54,8 +54,8 @@ training:
   device: 0
   workers: 10
 inference:
-  source: ''
-  output_dir: ''
+  source: '..\..\data\inference\video\office_nav_01.mp4'
+  output_dir: '..\..\data\inference\output'
   model_path: '..\..\data\results\runs\robotathome_seg_strat\weights\best.pt'
   mapping_json: '..\..\data\yolo\class_id_to_name.json'
   conf_threshold: 0.70
