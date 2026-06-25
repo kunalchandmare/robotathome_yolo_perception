@@ -116,6 +116,7 @@ def go(config: DictConfig):
                 "conf_threshold": str(comp_cfg_runtime.get("conf_threshold", 0.25)),
                 "imgsz": str(comp_cfg_runtime.get("imgsz", 640)),
                 "device": str(comp_cfg_runtime.get("device", 0)),
+                "font_scale": str(comp_cfg_runtime.get("font_scale", None)),
             },
         )
 if __name__ == "__main__":

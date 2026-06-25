@@ -156,6 +156,7 @@ def run_inference(
     conf_threshold: float = 0.25,
     imgsz: int = 640,
     device: int = 0,
+    font_scale: float | None = None,
 ):
     """
     Run segmentation inference on any Ultralytics-compatible source and save
@@ -170,6 +171,9 @@ def run_inference(
         conf_threshold: Minimum confidence to show a detection.
         imgsz:          Inference image size.
         device:         GPU device index.
+        font_scale:     Label text size. None = auto (proportional to frame resolution).
+                        0.3–0.5 → small/compact, 0.6–0.9 → medium (720p),
+                        1.0–1.5 → large (1080p+), >1.5 → very large.
     """
     output_dir = Path(output_dir).resolve()
     ensure_dir(output_dir)
@@ -220,7 +224,7 @@ def run_inference(
     try:
         for idx, result in enumerate(pbar):
             img = result.orig_img.copy()
-            annotated = annotate_frame(img, result, class_names, mask_alpha=0.35)
+            annotated = annotate_frame(img, result, class_names, mask_alpha=0.35, font_scale=font_scale)
 
             if save_as_video:
                 if writer is None:
@@ -254,6 +258,7 @@ def go(args) -> int:
         conf_threshold=args.conf_threshold,
         imgsz=args.imgsz,
         device=args.device,
+        font_scale=args.font_scale,
     )
     return 0
 
@@ -270,6 +275,16 @@ if __name__ == "__main__":
     parser.add_argument("--conf_threshold", type=float, default=0.25,   help="Detection confidence threshold")
     parser.add_argument("--imgsz",          type=int,   default=640,    help="Inference image size")
     parser.add_argument("--device",         type=int,   default=0,      help="GPU device index")
+    parser.add_argument(
+        "--font_scale",
+        type=float,
+        default=None,
+        help=(
+            "Label font size (default: auto, proportional to frame resolution). "
+            "Suggested ranges: 0.3-0.5 small/compact, 0.6-0.9 medium (720p), "
+            "1.0-1.5 large (1080p+), >1.5 very large."
+        ),
+    )
 
     args = parser.parse_args()
     sys.exit(go(args))

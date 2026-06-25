@@ -188,14 +188,21 @@ components:
         description: "Path to class_id_to_name.json for class name overlay labels"
       conf_threshold:
         type: float
+        required: true
         default: 0.25
         description: "Minimum detection confidence to annotate"
       imgsz:
         type: int
+        required: true
         default: 640
         description: "Inference image size"
       device:
         type: int
+        required: true
         default: 0
         description: "GPU device index"
-
+      font_scale:
+        type: float
+        required: false
+        default: null
+        description: "Label font size (default: auto, proportional to frame resolution). Suggested ranges: 0.3-0.5 small/compact, 0.6-0.9 medium (720p), 1.0-1.5 large (1080p+), >1.5 very large."
