@@ -9,12 +9,15 @@ import argparse
 import logging
 import subprocess
 import sys
-import training as train
+
+
 import mlflow
+import training as train
+
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
-
 
 def go(args):
     # No multiplicity handling; all arguments are single set
@@ -24,28 +27,31 @@ def go(args):
             mlflow.set_tag("component_name", "training")
             try:
                 # --- Pull input artifact (DVC) ---
-                # input_artifact_path = "<input_path>"
-                # input_dvc_file = "<input_path>.dvc"  # TODO: set actual input DVC file
-                # logger.info(f"Pulling input artifact: {input_artifact_path}")
-                # subprocess.run(["dvc", "pull", input_dvc_file], check=True)
-                # mlflow.set_tag("input_artifact", input_artifact_path)
+                input_artifact_path = args.dataset_root
+                input_dvc_file = "data.dvc"  # TODO: set actual input DVC file
+                logger.info(f"Pulling input artifact: {input_artifact_path}")
+                subprocess.run(["dvc", "pull", input_dvc_file], check=True)
+                mlflow.set_tag("Training_data", input_artifact_path)
+
+                # --- Log metrics / params (MLflow tracking) ---
+                mlflow.log_param("Epochs", args.epochs)
+                mlflow.log_param("Image Size", args.impsz)
+                mlflow.log_param("Batch", args.batch)
+                mlflow.log_param("Workers", args.workers)
+                # mlflow.log_metric("metric", value)
 
                 train.go(args)
 
-                # --- Log metrics / params (MLflow tracking) ---
-                # mlflow.log_param("key", value)
-                # mlflow.log_metric("metric", value)
-
                 # --- Track and push output artifact (DVC) ---
-                # output_path = "<output_path>"  # TODO: set actual output path
-                # logger.info(f"Adding output artifact to DVC: {output_path}")
-                # subprocess.run(["dvc", "add", output_path], check=True)
-                # mlflow.set_tag("output_artifact", output_path)
-                # logger.info("Pushing output artifact to remote DVC storage")
-                # subprocess.run(["dvc", "push"], check=True)
+                output_path = args.output_root  # TODO: set actual output path
+                logger.info(f"Adding output results to DVC: {output_path}")
+                subprocess.run(["dvc", "add", "--file","dvc_files/results.dvc", output_path], check=True)
+                mlflow.set_tag("Training Results", output_path)
+                logger.info("Pushing output artifact to remote DVC storage")
+                subprocess.run(["dvc", "push"], check=True)
 
                 # --- Optionally also log artifact path to MLflow ---
-                # mlflow.log_artifact(output_path)
+                mlflow.log_artifact(output_path)
 
             except subprocess.CalledProcessError as e:
                 logger.error(f"DVC command failed: {e}")
@@ -71,6 +77,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output_root", type=str,
         required=False,
+        default='output',
         help="Directory for run artifacts and metrics"
     )
     
@@ -87,6 +94,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name", type=str,
         required=False,
+        default='yolo11s-seg.pt',
         help="Base segmentation model name"
     )
     
@@ -95,6 +103,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--run_name", type=str,
         required=False,
+        default='robotathome_seg_strat',
         help="Run name under output/runs"
     )
     
@@ -103,6 +112,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--epochs", type=int,
         required=False,
+        default=50,
         help="Number of training epochs"
     )
     
@@ -111,6 +121,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--imgsz", type=int,
         required=False,
+        default=640,
         help="Input image size"
     )
     
@@ -119,6 +130,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--batch", type=int,
         required=False,
+        default=-1,
         help="Batch size (-1 enables AutoBatch)"
     )
     
@@ -127,6 +139,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--device", type=int,
         required=False,
+        default=0,
         help="GPU device index"
     )
     
@@ -135,6 +148,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--workers", type=int,
         required=False,
+        default=10,
         help="Data loader workers"
     )
     
