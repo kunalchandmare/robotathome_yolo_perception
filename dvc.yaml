@@ -1,0 +1,80 @@
+stages:
+  download:
+    cmd: python src/download/run.py
+    params:
+      - main.project_name
+      - main.experiment_name
+      - main.steps
+      - main.dvc_remote
+      - download.dataset_sources
+    outs:
+      - data/raw
+
+  annotation_convert:
+    cmd: python src/annotation_convert/run.py
+    deps:
+      - data/raw
+    params:
+      - annotation_convert.rh_path
+      - annotation_convert.rgbd_path
+      - annotation_convert.scene_path
+      - annotation_convert.output_root
+      - annotation_convert.epsilon_ratio
+      - annotation_convert.labels_root
+      - annotation_convert.mapping_json
+      - annotation_convert.name_mode
+      - annotation_convert.force_convert
+      - annotation_convert.backup
+    outs:
+      - yolo
+
+  split:
+    cmd: python src/split/run.py
+    deps:
+      - yolo
+    params:
+      - split.source_root
+      - split.output_root
+      - split.train_ratio
+      - split.val_ratio
+      - split.test_ratio
+      - split.seed
+      - split.image_exts
+      - split.use_stratified
+      - split.rare_threshold
+    outs:
+      - yolo_split_stratified
+
+  training:
+    cmd: python src/training/run.py
+    deps:
+      - yolo_split_stratified
+    params:
+      - training.dataset_root
+      - training.output_root
+      - training.mapping_json
+      - training.model_name
+      - training.run_name
+      - training.epochs
+      - training.imgsz
+      - training.batch
+      - training.device
+      - training.workers
+    outs:
+      - output
+
+  inference:
+    cmd: python src/inference/run.py
+    deps:
+      - output
+    params:
+      - inference.source
+      - inference.output_dir
+      - inference.model_path
+      - inference.mapping_json
+      - inference.conf_threshold
+      - inference.imgsz
+      - inference.device
+      - inference.font_scale
+    outs:
+      - inference_output
