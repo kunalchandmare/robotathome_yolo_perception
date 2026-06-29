@@ -1,0 +1,68 @@
+name: inference
+conda_env: conda.yaml
+
+entry_points:
+  main:
+    parameters:
+
+
+      source:
+        description: "Inference source: local image/video path, directory, webcam index (0), or RTSP/HTTP stream URL"
+        type: string
+
+
+
+
+      output_dir:
+        description: "Output directory for annotated frames or images"
+        type: string
+
+
+
+
+      model_path:
+        description: "Path or URL to the model checkpoint (.pt file). See README for supported formats."
+        type: string
+
+
+
+
+      mapping_json:
+        description: "Path to class_id_to_name.json for class name overlay labels"
+        type: string
+
+
+
+
+      conf_threshold:
+        description: "Minimum detection confidence to annotate"
+        type: float
+
+
+
+
+      imgsz:
+        description: "Inference image size"
+        type: float
+
+
+
+
+      device:
+        description: "GPU device index"
+        type: float
+
+
+
+
+      font_scale:
+        description: "Label font size (default: auto, proportional to frame resolution). Suggested ranges: 0.3-0.5 small/compact, 0.6-0.9 medium (720p), 1.0-1.5 large (1080p+), >1.5 very large."
+        type: string
+
+        default: ""
+
+
+
+
+    command: >-
+      python run.py --source {source} --output_dir {output_dir} --model_path {model_path} --mapping_json {mapping_json} --conf_threshold {conf_threshold} --imgsz {imgsz} --device {device} --font_scale {font_scale}

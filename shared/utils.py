@@ -34,7 +34,7 @@ def none_if_null(value):
         if text.lower() in {"", "none", "null"}:
             return None
         if len(text) >= 2 and text[0] == text[-1] and text[0] in {"'", '"'}:
-            return text[1:-1]
+            return none_if_null(text[1:-1])
         return text
     return value
 

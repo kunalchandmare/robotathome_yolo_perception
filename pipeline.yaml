@@ -166,3 +166,43 @@ components:
         type: int
         default: 10
         description: "Data loader workers"
+
+  inference:
+    description: "Run YOLO segmentation inference on any source (image dir, video file, webcam, RTSP stream) and save annotated output"
+    arguments:
+      source:
+        type: str
+        required: true
+        description: "Inference source: local image/video path, directory, webcam index (0), or RTSP/HTTP stream URL"
+      output_dir:
+        type: str
+        required: true
+        description: "Output directory for annotated frames or images"
+      model_path:
+        type: str
+        required: true
+        description: "Path or URL to the model checkpoint (.pt file). See README for supported formats."
+      mapping_json:
+        type: str
+        required: true
+        description: "Path to class_id_to_name.json for class name overlay labels"
+      conf_threshold:
+        type: float
+        required: true
+        default: 0.25
+        description: "Minimum detection confidence to annotate"
+      imgsz:
+        type: int
+        required: true
+        default: 640
+        description: "Inference image size"
+      device:
+        type: int
+        required: true
+        default: 0
+        description: "GPU device index"
+      font_scale:
+        type: float
+        required: false
+        default: null
+        description: "Label font size (default: auto, proportional to frame resolution). Suggested ranges: 0.3-0.5 small/compact, 0.6-0.9 medium (720p), 1.0-1.5 large (1080p+), >1.5 very large."

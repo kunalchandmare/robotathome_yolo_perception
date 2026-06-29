@@ -13,11 +13,17 @@ import hydra
 from omegaconf import DictConfig
 
 
+
+def _serialize_param(value):
+    return "" if value is None else str(value)
+
+
 _steps = [
     "download",
     "annotation_convert",
     "split",
     "training",
+    "inference",
 ]
 
 @hydra.main(version_base=None, config_name="params", config_path=".")
@@ -35,13 +41,13 @@ def go(config: DictConfig):
                 "main",
                 env_manager="local",
                 parameters={
-                    "dataset_extract_to": str((entry or {}).get("dataset_extract_to", None)),
-                    "dataset_filename": str((entry or {}).get("dataset_filename", None)),
-                    "dataset_md5": str((entry or {}).get("dataset_md5", None)),
-                    "dataset_url": str((entry or {}).get("dataset_url", None)),
-                    "extract_root": str((entry or {}).get("extract_root", '.')),
-                    "force_download": str((entry or {}).get("force_download", False)),
-                    "out_dir": str((entry or {}).get("out_dir", '')),
+                    "dataset_extract_to": _serialize_param((entry or {}).get("dataset_extract_to", None)),
+                    "dataset_filename": _serialize_param((entry or {}).get("dataset_filename", None)),
+                    "dataset_md5": _serialize_param((entry or {}).get("dataset_md5", None)),
+                    "dataset_url": _serialize_param((entry or {}).get("dataset_url", None)),
+                    "extract_root": _serialize_param((entry or {}).get("extract_root", '.')),
+                    "force_download": _serialize_param((entry or {}).get("force_download", False)),
+                    "out_dir": _serialize_param((entry or {}).get("out_dir", '')),
                 },
             )
     if "annotation_convert" in active_steps:
@@ -51,16 +57,16 @@ def go(config: DictConfig):
             "main",
             env_manager="local",
             parameters={
-                "rh_path": str(step_cfg_runtime.get("rh_path", '')),
-                "rgbd_path": str(step_cfg_runtime.get("rgbd_path", '')),
-                "scene_path": str(step_cfg_runtime.get("scene_path", '')),
-                "output_root": str(step_cfg_runtime.get("output_root", 'yolo')),
-                "epsilon_ratio": str(step_cfg_runtime.get("epsilon_ratio", 0.002)),
-                "labels_root": str(step_cfg_runtime.get("labels_root", 'yolo/labels')),
-                "mapping_json": str(step_cfg_runtime.get("mapping_json", 'yolo/class_id_to_name.json')),
-                "name_mode": str(step_cfg_runtime.get("name_mode", 'ot')),
-                "force_convert": str(step_cfg_runtime.get("force_convert", False)),
-                "backup": str(step_cfg_runtime.get("backup", True)),
+                "rh_path": _serialize_param(step_cfg_runtime.get("rh_path", '')),
+                "rgbd_path": _serialize_param(step_cfg_runtime.get("rgbd_path", '')),
+                "scene_path": _serialize_param(step_cfg_runtime.get("scene_path", '')),
+                "output_root": _serialize_param(step_cfg_runtime.get("output_root", 'yolo')),
+                "epsilon_ratio": _serialize_param(step_cfg_runtime.get("epsilon_ratio", 0.002)),
+                "labels_root": _serialize_param(step_cfg_runtime.get("labels_root", 'yolo/labels')),
+                "mapping_json": _serialize_param(step_cfg_runtime.get("mapping_json", 'yolo/class_id_to_name.json')),
+                "name_mode": _serialize_param(step_cfg_runtime.get("name_mode", 'ot')),
+                "force_convert": _serialize_param(step_cfg_runtime.get("force_convert", False)),
+                "backup": _serialize_param(step_cfg_runtime.get("backup", True)),
             },
         )
     if "split" in active_steps:
@@ -70,15 +76,15 @@ def go(config: DictConfig):
             "main",
             env_manager="local",
             parameters={
-                "source_root": str(step_cfg_runtime.get("source_root", '')),
-                "output_root": str(step_cfg_runtime.get("output_root", 'yolo_split_stratified')),
-                "train_ratio": str(step_cfg_runtime.get("train_ratio", 0.8)),
-                "val_ratio": str(step_cfg_runtime.get("val_ratio", 0.1)),
-                "test_ratio": str(step_cfg_runtime.get("test_ratio", 0.1)),
-                "seed": str(step_cfg_runtime.get("seed", 42)),
-                "image_exts": str(step_cfg_runtime.get("image_exts", '.jpg,.jpeg,.png')),
-                "use_stratified": str(step_cfg_runtime.get("use_stratified", True)),
-                "rare_threshold": str(step_cfg_runtime.get("rare_threshold", 20)),
+                "source_root": _serialize_param(step_cfg_runtime.get("source_root", '')),
+                "output_root": _serialize_param(step_cfg_runtime.get("output_root", 'yolo_split_stratified')),
+                "train_ratio": _serialize_param(step_cfg_runtime.get("train_ratio", 0.8)),
+                "val_ratio": _serialize_param(step_cfg_runtime.get("val_ratio", 0.1)),
+                "test_ratio": _serialize_param(step_cfg_runtime.get("test_ratio", 0.1)),
+                "seed": _serialize_param(step_cfg_runtime.get("seed", 42)),
+                "image_exts": _serialize_param(step_cfg_runtime.get("image_exts", '.jpg,.jpeg,.png')),
+                "use_stratified": _serialize_param(step_cfg_runtime.get("use_stratified", True)),
+                "rare_threshold": _serialize_param(step_cfg_runtime.get("rare_threshold", 20)),
             },
         )
     # ── components/ ────────────────────────────────────────────────────────────
@@ -89,16 +95,33 @@ def go(config: DictConfig):
             "main",
             env_manager="local",
             parameters={
-                "dataset_root": str(comp_cfg_runtime.get("dataset_root", '')),
-                "output_root": str(comp_cfg_runtime.get("output_root", 'output')),
-                "mapping_json": str(comp_cfg_runtime.get("mapping_json", '')),
-                "model_name": str(comp_cfg_runtime.get("model_name", 'yolo11s-seg.pt')),
-                "run_name": str(comp_cfg_runtime.get("run_name", 'robotathome_seg_strat')),
-                "epochs": str(comp_cfg_runtime.get("epochs", 50)),
-                "imgsz": str(comp_cfg_runtime.get("imgsz", 640)),
-                "batch": str(comp_cfg_runtime.get("batch", -1)),
-                "device": str(comp_cfg_runtime.get("device", 0)),
-                "workers": str(comp_cfg_runtime.get("workers", 10)),
+                "dataset_root": _serialize_param(comp_cfg_runtime.get("dataset_root", '')),
+                "output_root": _serialize_param(comp_cfg_runtime.get("output_root", 'output')),
+                "mapping_json": _serialize_param(comp_cfg_runtime.get("mapping_json", '')),
+                "model_name": _serialize_param(comp_cfg_runtime.get("model_name", 'yolo11s-seg.pt')),
+                "run_name": _serialize_param(comp_cfg_runtime.get("run_name", 'robotathome_seg_strat')),
+                "epochs": _serialize_param(comp_cfg_runtime.get("epochs", 50)),
+                "imgsz": _serialize_param(comp_cfg_runtime.get("imgsz", 640)),
+                "batch": _serialize_param(comp_cfg_runtime.get("batch", -1)),
+                "device": _serialize_param(comp_cfg_runtime.get("device", 0)),
+                "workers": _serialize_param(comp_cfg_runtime.get("workers", 10)),
+            },
+        )
+    if "inference" in active_steps:
+        comp_cfg_runtime = config.get("inference", {})
+        mlflow.run(
+            os.path.join(hydra.utils.get_original_cwd(), "components", "inference"),
+            "main",
+            env_manager="local",
+            parameters={
+                "source": _serialize_param(comp_cfg_runtime.get("source", '')),
+                "output_dir": _serialize_param(comp_cfg_runtime.get("output_dir", '')),
+                "model_path": _serialize_param(comp_cfg_runtime.get("model_path", '')),
+                "mapping_json": _serialize_param(comp_cfg_runtime.get("mapping_json", '')),
+                "conf_threshold": _serialize_param(comp_cfg_runtime.get("conf_threshold", 0.25)),
+                "imgsz": _serialize_param(comp_cfg_runtime.get("imgsz", 640)),
+                "device": _serialize_param(comp_cfg_runtime.get("device", 0)),
+                "font_scale": _serialize_param(comp_cfg_runtime.get("font_scale", None)),
             },
         )
 if __name__ == "__main__":
