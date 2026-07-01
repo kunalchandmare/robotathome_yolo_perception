@@ -1,7 +1,9 @@
 import json
+import stat
 from pathlib import Path
 
 import cv2
+from tqdm import tqdm
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
@@ -181,3 +183,64 @@ def print_gpu_info(device_id):
     print("GPU name:", torch.cuda.get_device_name(device_id))
     print("Allocated memory (GB):", round(torch.cuda.memory_allocated(device_id) / 1024**3, 3))
     print("Reserved memory (GB):", round(torch.cuda.memory_reserved(device_id) / 1024**3, 3))
+
+import zipfile
+from pathlib import Path
+
+FIXED_DT = (2020, 1, 1, 0, 0, 0)
+
+def safe_unzip(zip_path, extract_dir):
+    zip_path = Path(zip_path).resolve()
+    extract_dir = Path(extract_dir).resolve()
+    extract_dir.mkdir(parents=True, exist_ok=True)
+
+    with zipfile.ZipFile(zip_path, "r") as zf:
+        bad_file = zf.testzip()
+        if bad_file is not None:
+            raise ValueError(f"Corrupted file inside zip: {bad_file}")
+
+        members = zf.infolist()
+        for member in tqdm(members, desc="Validating zip entries", unit="file"):
+            member_path = extract_dir / member.filename
+            resolved_member_path = member_path.resolve()
+
+            if extract_dir not in resolved_member_path.parents and resolved_member_path != extract_dir:
+                raise ValueError(f"Unsafe path in zip: {member.filename}")
+
+        for member in tqdm(members, desc="Extracting zip", unit="file"):
+            zf.extract(member, extract_dir)
+
+def make_deterministic_zip(source_dir, zip_path):
+    source_dir = Path(source_dir).resolve()
+    zip_path = Path(zip_path).resolve()
+
+    paths = sorted(source_dir.rglob("*"), key=lambda p: p.as_posix())
+
+    with zipfile.ZipFile(
+        zip_path,
+        mode="w",
+        compression=zipfile.ZIP_DEFLATED,
+        compresslevel=9,
+    ) as zf:
+        for path in tqdm(paths, desc="Creating deterministic zip", unit="file"):
+            rel_path = path.relative_to(source_dir).as_posix()
+
+            if path.is_dir():
+                if not rel_path.endswith("/"):
+                    rel_path += "/"
+                info = zipfile.ZipInfo(rel_path, date_time=FIXED_DT)
+                info.create_system = 3
+                info.external_attr = (0o755 << 16) | 0x10
+                info.compress_type = zipfile.ZIP_STORED
+                zf.writestr(info, b"")
+                continue
+
+            info = zipfile.ZipInfo(rel_path, date_time=FIXED_DT)
+            info.create_system = 3
+            is_executable = bool(path.stat().st_mode & stat.S_IXUSR)
+            perms = 0o755 if is_executable else 0o644
+            info.external_attr = perms << 16
+            info.compress_type = zipfile.ZIP_DEFLATED
+
+            with path.open("rb") as f:
+                zf.writestr(info, f.read())

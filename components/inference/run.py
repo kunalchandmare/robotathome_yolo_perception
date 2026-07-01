@@ -13,8 +13,6 @@ import sys
 
 import mlflow
 
-import inference as infer
-
 def _bootstrap_project_root() -> Path:
     project_root = Path(__file__).resolve().parents[2]
     project_root_str = str(project_root)
@@ -23,6 +21,8 @@ def _bootstrap_project_root() -> Path:
     return project_root
 
 PROJECT_ROOT = _bootstrap_project_root()
+
+import inference as infer
 
 from shared.utils import none_if_null
 from shared.mlflow_utils import configure_project_mlflow
