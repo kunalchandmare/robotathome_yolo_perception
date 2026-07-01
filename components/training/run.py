@@ -39,11 +39,11 @@ def go(args):
         mlflow.set_tag("component_name", "training")
         try:
             # --- Pull input artifact (DVC) ---
-            input_artifact_path = args.dataset_root
-            input_dvc_file = "dvc_files/training.dvc"
+            input_artifact_path = Path(args.dataset_root)
             logger.info(f"Pulling input artifact: {input_artifact_path}")
-            subprocess.run(["dvc", "pull", input_dvc_file], check=True)
+            subprocess.run(["dvc", "pull", input_artifact_path], check=True)
             mlflow.set_tag("Training_data", input_artifact_path)
+            mlflow.log_artifact(str(input_artifact_path.with_suffix(".dvc")), artifact_path="dvc_inputs")
 
             # --- Log metrics / params (MLflow tracking) ---
             mlflow.log_param("Epochs", args.epochs)
@@ -55,15 +55,16 @@ def go(args):
             train.go(args)
 
             # --- Track and push output artifact (DVC) ---
-            output_path = args.output_root  # TODO: set actual output path
+            output_path = args.output_root
             logger.info(f"Adding output results to DVC: {output_path}")
-            subprocess.run(["dvc", "add", "--file", "dvc_files/results.dvc", output_path], check=True)
+            subprocess.run(["dvc", "add", output_path], check=True)
             mlflow.set_tag("Training Results", output_path)
             logger.info("Pushing output artifact to remote DVC storage")
-            subprocess.run(["dvc", "push"], check=True)
+            subprocess.run(["dvc", "push", "-v", output_path], check=True)
 
             # --- Optionally also log artifact path to MLflow ---
-            #mlflow.log_artifact(output_path)
+            mlflow.log_artifact(str(output_path.with_suffix(".dvc")), artifact_path="dvc_outputs")
+
 
         except subprocess.CalledProcessError as e:
             logger.error(f"DVC command failed: {e}")

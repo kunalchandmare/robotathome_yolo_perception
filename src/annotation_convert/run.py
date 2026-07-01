@@ -24,6 +24,7 @@ import annotation_convert as annotation_convert
 import mlflow
 
 from shared.mlflow_utils import configure_project_mlflow
+from shared.utils import make_deterministic_zip
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
@@ -36,22 +37,30 @@ def go(args):
     with mlflow.start_run():
         mlflow.set_tag("step_name", "annotation_convert")
         # --- Pull input artifact (DVC) ---
-        # input_artifact_path = "<input_path>"
-        # subprocess.run(["dvc", "pull", "<input_path>.dvc"], check=True)
-        # mlflow.set_tag("input_artifact", input_artifact_path)
+        input_files_path = Path(args.rgbd_path).resolve().parent # get files folder
+        subprocess.run(["dvc", "pull", input_files_path], check=True)
+        mlflow.set_tag("Raw Files", input_files_path)
+        mlflow.log_artifact(str(input_files_path.with_suffix(".dvc")), artifact_path="dvc_inputs")
 
         annotation_convert.go(args)
 
         # --- Log metrics / params (MLflow tracking) ---
-        # mlflow.log_param("key", value)
+        mlflow.log_param("epsilon_ratio", args.epsilon_ratio)
+        mlflow.log_param("force_convert", args.force_convert)
+
         # mlflow.log_metric("metric", value)
 
         # --- Track and push output artifact (DVC) ---
-        # output_artifact_path = "<output_path>"
-        # subprocess.run(["dvc", "add", output_artifact_path], check=True)
+        output_artifact_path = Path(args.output_root)
+        #zip_output_artifact_path = output_artifact_path.with_suffix(".zip")
+        #make_deterministic_zip(output_artifact_path, zip_output_artifact_path)
+
+        subprocess.run(["dvc", "add", output_artifact_path], check=True)
+        subprocess.run(["dvc", "push", "-v", output_artifact_path], check=True)
+        mlflow.set_tag("Converted Yolo Files", args.output_root)
         # subprocess.run(["dvc", "push"], check=True)
         # mlflow.set_tag("output_artifact", output_artifact_path)
-        # mlflow.log_artifact(output_artifact_path)
+        mlflow.log_artifact(str(output_artifact_path.with_suffix(".dvc")), artifact_path="dvc_outputs")
 
         pass
 

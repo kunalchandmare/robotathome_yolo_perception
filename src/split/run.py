@@ -36,15 +36,27 @@ def go(args):
     configure_project_mlflow(PROJECT_ROOT)
 
     with mlflow.start_run():
+        mlflow.set_tag("step_name", "split")
         # --- Pull input artifact (DVC) ---
-        # subprocess.run(["dvc", "pull", "<file>.dvc"], check=True)
+        input_files_path = Path(args.source_root)  # get files folder
+        subprocess.run(["dvc", "pull", input_files_path], check=True)
+
+        mlflow.set_tag("Yolo annotated Files", input_files_path)
+        mlflow.log_param("train%", args.train_ratio)
+        mlflow.log_param("val%", args.val_ratio)
+        mlflow.log_param("test%", args.test_ratio)
+        mlflow.log_param("seed", args.seed)
+        mlflow.log_param("stratified", args.use_stratified)
+        mlflow.log_param("rarity_threshold", args.rare_threshold)
 
         data_split.go(args)
 
         # --- Track and push output artifact (DVC) ---
-        # subprocess.run(["dvc", "add", "<output_path>"], check=True)
-        # subprocess.run(["dvc", "push"], check=True)
-
+        out_files_path = Path(args.output_root)
+        mlflow.set_tag("Training Files", out_files_path)
+        subprocess.run(["dvc", "add", out_files_path], check=True)
+        subprocess.run(["dvc", "push", "-v", out_files_path], check=True)
+        mlflow.log_artifact(str(out_files_path.with_suffix(".dvc")),artifact_path="dvc_outputs")
         pass
 
 

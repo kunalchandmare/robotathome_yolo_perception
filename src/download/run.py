@@ -42,6 +42,9 @@ def go(args):
         # input_artifact_path = "<input_path>"
         # subprocess.run(["dvc", "pull", "<input_path>.dvc"], check=True)
         # mlflow.set_tag("input_artifact", input_artifact_path)
+
+        mlflow.log_artifact(args.dataset_filename, artifact_path="downloads")
+
         mlflow.set_tag("source_url", args.dataset_url)
         mlflow.set_tag("file_name", args.dataset_filename)
         mlflow.set_tag("file_hash", args.dataset_md5)
@@ -50,7 +53,7 @@ def go(args):
         mlflow.log_param("Forced Download", args.force_download)
         # mlflow.log_metric("metric", value)
 
-        #downloader.go(args)
+        downloader.go(args)
 
         # --- Track and push output artifact (DVC) ---
         output_artifact_path = Path(args.extract_root)
@@ -63,7 +66,7 @@ def go(args):
         subprocess.run(["dvc", "add", output_artifact_path], check=True)
         subprocess.run(["dvc", "push", "-v",output_artifact_path], check=True)
         mlflow.set_tag(data_name, output_artifact_path)
-        # mlflow.log_artifact(output_artifact_path)
+        mlflow.log_artifact(str(output_artifact_path.with_suffix(".dvc")), artifact_path="dvc_outputs")
 
         pass
 
