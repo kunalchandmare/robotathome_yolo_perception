@@ -7,13 +7,25 @@ Split YOLO dataset into train/val/test
 """
 import argparse
 import logging
+import sys
 
 import subprocess
 from pathlib import Path
 
+def _bootstrap_project_root() -> Path:
+    project_root = Path(__file__).resolve().parents[2]
+    project_root_str = str(project_root)
+    if project_root_str not in sys.path:
+        sys.path.insert(0, project_root_str)
+    return project_root
+
+PROJECT_ROOT = _bootstrap_project_root()
+
 import yolo_data_split as data_split
 
 import mlflow
+
+from shared.mlflow_utils import configure_project_mlflow
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
@@ -21,8 +33,7 @@ logger = logging.getLogger()
 
 def go(args):
     # No multiplicity handling; all arguments are single set
-
-
+    configure_project_mlflow(PROJECT_ROOT)
 
     with mlflow.start_run():
         # --- Pull input artifact (DVC) ---

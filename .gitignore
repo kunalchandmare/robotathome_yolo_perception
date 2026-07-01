@@ -1,3 +1,4 @@
 /outputs
 /src/download/data
-/data
+data/*
+!data/*.dvc

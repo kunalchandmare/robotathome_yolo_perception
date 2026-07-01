@@ -8,9 +8,22 @@ Driven by Hydra config (params.yaml). Run with:
 """
 import os
 import sys
+from pathlib import Path
+
+def _bootstrap_project_root() -> Path:
+    project_root = Path(__file__).resolve().parents[2]
+    project_root_str = str(project_root)
+    if project_root_str not in sys.path:
+        sys.path.insert(0, project_root_str)
+    return project_root
+
+PROJECT_ROOT = _bootstrap_project_root()
+
 import mlflow
 import hydra
 from omegaconf import DictConfig
+
+from shared.mlflow_utils import configure_project_mlflow
 
 
 
@@ -29,6 +42,10 @@ _steps = [
 @hydra.main(version_base=None, config_name="params", config_path=".")
 def go(config: DictConfig):
     main_cfg = config.get("main", {})
+    _, experiment_name = configure_project_mlflow(
+        project_root=PROJECT_ROOT,
+        experiment_name=main_cfg.get("experiment_name"),
+    )
     steps_par = str(main_cfg.get("steps", "all"))
     active_steps = [s.strip() for s in steps_par.split(",") if s.strip()] if steps_par != "all" else _steps
 
@@ -39,6 +56,7 @@ def go(config: DictConfig):
             mlflow.run(
                 os.path.join(hydra.utils.get_original_cwd(), "src", "download"),
                 "main",
+                experiment_name=experiment_name,
                 env_manager="local",
                 parameters={
                     "dataset_extract_to": _serialize_param((entry or {}).get("dataset_extract_to", None)),
@@ -55,6 +73,7 @@ def go(config: DictConfig):
         mlflow.run(
             os.path.join(hydra.utils.get_original_cwd(), "src", "annotation_convert"),
             "main",
+            experiment_name=experiment_name,
             env_manager="local",
             parameters={
                 "rh_path": _serialize_param(step_cfg_runtime.get("rh_path", '')),
@@ -74,6 +93,7 @@ def go(config: DictConfig):
         mlflow.run(
             os.path.join(hydra.utils.get_original_cwd(), "src", "split"),
             "main",
+            experiment_name=experiment_name,
             env_manager="local",
             parameters={
                 "source_root": _serialize_param(step_cfg_runtime.get("source_root", '')),
@@ -93,6 +113,7 @@ def go(config: DictConfig):
         mlflow.run(
             os.path.join(hydra.utils.get_original_cwd(), "components", "training"),
             "main",
+            experiment_name=experiment_name,
             env_manager="local",
             parameters={
                 "dataset_root": _serialize_param(comp_cfg_runtime.get("dataset_root", '')),
@@ -112,6 +133,7 @@ def go(config: DictConfig):
         mlflow.run(
             os.path.join(hydra.utils.get_original_cwd(), "components", "inference"),
             "main",
+            experiment_name=experiment_name,
             env_manager="local",
             parameters={
                 "source": _serialize_param(comp_cfg_runtime.get("source", '')),

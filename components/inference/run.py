@@ -13,16 +13,19 @@ import sys
 
 import mlflow
 
-ROOT = Path(__file__).resolve().parents[2]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+import inference as infer
 
-try:
-    from . import inference as infer
-except ImportError:
-    import inference as infer
+def _bootstrap_project_root() -> Path:
+    project_root = Path(__file__).resolve().parents[2]
+    project_root_str = str(project_root)
+    if project_root_str not in sys.path:
+        sys.path.insert(0, project_root_str)
+    return project_root
+
+PROJECT_ROOT = _bootstrap_project_root()
 
 from shared.utils import none_if_null
+from shared.mlflow_utils import configure_project_mlflow
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
@@ -30,6 +33,7 @@ logger = logging.getLogger()
 
 def go(args):
     # No multiplicity handling; all arguments are single set
+    configure_project_mlflow(PROJECT_ROOT)
 
     args.font_scale = none_if_null(args.font_scale)
     if args.font_scale is not None:
