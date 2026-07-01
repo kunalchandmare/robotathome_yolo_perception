@@ -7,40 +7,63 @@ Download and extract Robot@Home archives or one custom source
 """
 import argparse
 import logging
-
 import subprocess
+import sys
+
 from pathlib import Path
 
+
 import mlflow
-import download as db_downloader
-from shared.utils import none_if_null
+
+
+def _bootstrap_project_root() -> None:
+    project_root = Path(__file__).resolve().parents[2]
+    project_root_str = str(project_root)
+    if project_root_str not in sys.path:
+        sys.path.insert(0, project_root_str)
+
+
+_bootstrap_project_root()
+
+from shared.helpers import parse_bool, parse_optional_str
+import download as downloader
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
-
 def go(args):
     # No multiplicity handling; all arguments are single set
 
+
+
     with mlflow.start_run():
-        args.extract_root = none_if_null(args.extract_root) or "."
-        args.dataset_extract_to = none_if_null(args.dataset_extract_to)
-
+        mlflow.set_tag("step_name", "download")
         # --- Pull input artifact (DVC) ---
-        # subprocess.run(["dvc", "pull", "<file>.dvc"], check=True)
+        # input_artifact_path = "<input_path>"
+        # subprocess.run(["dvc", "pull", "<input_path>.dvc"], check=True)
+        # mlflow.set_tag("input_artifact", input_artifact_path)
+        mlflow.set_tag("source_url", args.dataset_url)
+        mlflow.set_tag("file_name", args.dataset_filename)
+        mlflow.set_tag("file_hash", args.dataset_md5)
+        mlflow.set_tag("snapshot_name", f"{Path(args.dataset_filename).stem}_{args.dataset_md5[:8]}")
+        # --- Log metrics / params (MLflow tracking) ---
+        mlflow.log_param("Forced Download", args.force_download)
+        # mlflow.log_metric("metric", value)
 
-        # Downloads robot at Home Dataset based on CLI args.
-        db_downloader.go(args)
+        #downloader.go(args)
 
-        extract_root_path = Path(args.extract_root)
-        if args.dataset_extract_to:
-            extract_path = extract_root_path / args.dataset_extract_to
-        else:
-            extract_path = extract_root_path
-            
         # --- Track and push output artifact (DVC) ---
-        subprocess.run(["dvc", "add", str(extract_path.resolve())], check=True)
-        # subprocess.run(["dvc", "push"], check=True)
+        output_artifact_path = Path(args.extract_root)
+        if args.dataset_extract_to=='.':
+            data_name = "Raw SQL DB"
+            output_artifact_path = output_artifact_path / "rh.db"
+        else:
+            data_name = "Raw Files"
+            output_artifact_path = output_artifact_path / args.dataset_extract_to
+        subprocess.run(["dvc", "add", output_artifact_path], check=True)
+        subprocess.run(["dvc", "push", "-v",output_artifact_path], check=True)
+        mlflow.set_tag(data_name, output_artifact_path)
+        # mlflow.log_artifact(output_artifact_path)
 
         pass
 
@@ -62,45 +85,55 @@ if __name__ == "__main__":
     parser.add_argument(
         "--extract_root", type=str,
         required=False,
+        default='.',
         help="Root directory where archives are extracted"
     )
     
 
     
     parser.add_argument(
-        "--force_download", type=lambda x: x.lower() == "true",
+        "--force_download", type=parse_bool,
         required=False,
+        default=False,
         help="Force re-download even if file already exists (true/false)"
     )
     
 
     
     parser.add_argument(
-        "--dataset_url", type=str,
-        required=True,
-        help="Dataset URL"
-    )
-
-    parser.add_argument(
-        "--dataset_filename", type=str,
-        required=True,
-        help="Downloaded filename"
-    )
-
-    parser.add_argument(
-        "--dataset_md5", type=str,
-        required=True,
-        help="Expected MD5 checksum"
+        "--dataset_url", type=parse_optional_str,
+        required=False,
+        default=None,
+        help="Optional custom dataset URL (must be paired with dataset_filename and dataset_md5)"
     )
     
 
     
     parser.add_argument(
-        "--dataset_extract_to", type=str,
-        required=True,
-        help="Extraction path relative to extract_root for archives (required)"
+        "--dataset_filename", type=parse_optional_str,
+        required=False,
+        default=None,
+        help="Optional custom downloaded filename (must be paired with dataset_url and dataset_md5)"
+    )
+    
+
+    
+    parser.add_argument(
+        "--dataset_md5", type=parse_optional_str,
+        required=False,
+        default=None,
+        help="Optional custom MD5 checksum (must be paired with dataset_url and dataset_filename)"
+    )
+    
+
+    
+    parser.add_argument(
+        "--dataset_extract_to", type=parse_optional_str,
+        required=False,
+        default=None,
+        help="Optional extraction path relative to extract_root for custom archive"
     )
     
 
     args = parser.parse_args()
-    go(args)
+    sys.exit(go(args))
