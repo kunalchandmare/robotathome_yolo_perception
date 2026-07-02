@@ -35,14 +35,14 @@ def go(args):
     configure_project_mlflow(PROJECT_ROOT)
 
     with mlflow.start_run():
-        mlflow.set_tag("step_name", "annotation_convert")
+        mlflow.set_tag("component_name", "annotation_convert")
         # --- Pull input artifact (DVC) ---
         input_files_path = Path(args.rgbd_path).resolve().parent # get files folder
         subprocess.run(["dvc", "pull", input_files_path], check=True)
         mlflow.set_tag("Raw Files", input_files_path)
         mlflow.log_artifact(str(input_files_path.with_suffix(".dvc")), artifact_path="dvc_inputs")
 
-        annotation_convert.go(args)
+        #annotation_convert.go(args)
 
         # --- Log metrics / params (MLflow tracking) ---
         mlflow.log_param("epsilon_ratio", args.epsilon_ratio)

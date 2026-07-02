@@ -37,13 +37,13 @@ def go(args):
     configure_project_mlflow(PROJECT_ROOT)
 
     with mlflow.start_run():
-        mlflow.set_tag("step_name", "download")
+        mlflow.set_tag("component_name", "download")
         # --- Pull input artifact (DVC) ---
         # input_artifact_path = "<input_path>"
         # subprocess.run(["dvc", "pull", "<input_path>.dvc"], check=True)
         # mlflow.set_tag("input_artifact", input_artifact_path)
 
-        mlflow.log_artifact(args.dataset_filename, artifact_path="downloads")
+        logger.info(f"Downloading {args.dataset_filename} from {args.dataset_url} to {args.out_dir}")
 
         mlflow.set_tag("source_url", args.dataset_url)
         mlflow.set_tag("file_name", args.dataset_filename)
@@ -53,20 +53,24 @@ def go(args):
         mlflow.log_param("Forced Download", args.force_download)
         # mlflow.log_metric("metric", value)
 
-        downloader.go(args)
+        #downloader.go(args)
 
         # --- Track and push output artifact (DVC) ---
         output_artifact_path = Path(args.extract_root)
         if args.dataset_extract_to=='.':
             data_name = "Raw SQL DB"
             output_artifact_path = output_artifact_path / "rh.db"
+            downloaded_artefact = str(output_artifact_path) + ".dvc"
         else:
             data_name = "Raw Files"
             output_artifact_path = output_artifact_path / args.dataset_extract_to
+            downloaded_artefact = str(output_artifact_path.with_suffix(".dvc"))
+
         subprocess.run(["dvc", "add", output_artifact_path], check=True)
         subprocess.run(["dvc", "push", "-v",output_artifact_path], check=True)
         mlflow.set_tag(data_name, output_artifact_path)
-        mlflow.log_artifact(str(output_artifact_path.with_suffix(".dvc")), artifact_path="dvc_outputs")
+        logger.info(f"Pushing {downloaded_artefact} to DVC Remote")
+        mlflow.log_artifact(downloaded_artefact, artifact_path="dvc_outputs")
 
         pass
 

@@ -36,7 +36,7 @@ def go(args):
     configure_project_mlflow(PROJECT_ROOT)
 
     with mlflow.start_run():
-        mlflow.set_tag("step_name", "split")
+        mlflow.set_tag("component_name", "split")
         # --- Pull input artifact (DVC) ---
         input_files_path = Path(args.source_root)  # get files folder
         subprocess.run(["dvc", "pull", input_files_path], check=True)

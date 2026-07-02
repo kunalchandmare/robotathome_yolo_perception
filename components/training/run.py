@@ -52,7 +52,7 @@ def go(args):
             mlflow.log_param("Workers", args.workers)
             # mlflow.log_metric("metric", value)
 
-            train.go(args)
+            #train.go(args)
 
             # --- Track and push output artifact (DVC) ---
             output_path = Path(args.output_root)
