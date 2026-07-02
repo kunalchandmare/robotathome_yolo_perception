@@ -55,7 +55,7 @@ def go(args):
             train.go(args)
 
             # --- Track and push output artifact (DVC) ---
-            output_path = args.output_root
+            output_path = Path(args.output_root)
             logger.info(f"Adding output results to DVC: {output_path}")
             subprocess.run(["dvc", "add", output_path], check=True)
             mlflow.set_tag("Training Results", output_path)

@@ -1,0 +1,6 @@
+outs:
+- md5: 3e278cbb9df8f2bdd47238485d44a975.dir
+  size: 1160101029
+  nfiles: 60496
+  hash: md5
+  path: training

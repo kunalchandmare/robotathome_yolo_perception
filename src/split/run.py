@@ -42,14 +42,14 @@ def go(args):
         subprocess.run(["dvc", "pull", input_files_path], check=True)
 
         mlflow.set_tag("Yolo annotated Files", input_files_path)
-        mlflow.log_param("train%", args.train_ratio)
-        mlflow.log_param("val%", args.val_ratio)
-        mlflow.log_param("test%", args.test_ratio)
+        mlflow.log_param("train_ratio", args.train_ratio)
+        mlflow.log_param("val_ratio", args.val_ratio)
+        mlflow.log_param("test_ratio", args.test_ratio)
         mlflow.log_param("seed", args.seed)
         mlflow.log_param("stratified", args.use_stratified)
         mlflow.log_param("rarity_threshold", args.rare_threshold)
 
-        data_split.go(args)
+        #data_split.go(args)
 
         # --- Track and push output artifact (DVC) ---
         out_files_path = Path(args.output_root)
