@@ -1,5 +1,13 @@
 /outputs
 /src/download/data
-data/*
-!data/*.dvc
+/data/results/**/*.yaml
+*.png
+*.jpg
+*.bak
+*.txt
+*.db
+*.mp4
+*.pt
+*.json
 mlruns/
+

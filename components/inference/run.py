@@ -49,28 +49,36 @@ def go(args):
         mlflow.set_tag("component_name", "inference")
         try:
             # --- Pull input artifact (DVC) ---
-            # input_artifact_path = "<input_path>"
-            # input_dvc_file = "<input_path>.dvc"  # TODO: set actual input DVC file
-            # logger.info(f"Pulling input artifact: {input_artifact_path}")
-            # subprocess.run(["dvc", "pull", input_dvc_file], check=True)
-            # mlflow.set_tag("input_artifact", input_artifact_path)
+            src_path = Path(args.source)
+            mlflow.log_artifact(str(src_path), artifact_path="inference_source")
 
-            infer.go(args)
+            model_path = Path(args.model_path)
+            logger.info(f"Pulling Inference Model: {model_path}")
+            subprocess.run(["dvc", "pull", model_path], check=True)
+            mlflow.log_artifact(str(model_path), artifact_path="Models")
+
+            mapping_json_path = Path(args.mapping_json)
+            subprocess.run(["dvc", "pull", mapping_json_path], check=True)
+            mlflow.set_tag("Class Names to Id", mapping_json_path.stem)
+
+            #infer.go(args)
 
             # --- Log metrics / params (MLflow tracking) ---
-            # mlflow.log_param("key", value)
+            mlflow.log_param("conf_threshold", args.conf_threshold)
+            mlflow.log_param("frame_size", args.imgsz)
+            mlflow.log_param("device", args.device)
             # mlflow.log_metric("metric", value)
 
             # --- Track and push output artifact (DVC) ---
-            # output_path = "<output_path>"  # TODO: set actual output path
-            # logger.info(f"Adding output artifact to DVC: {output_path}")
-            # subprocess.run(["dvc", "add", output_path], check=True)
+            output_path = Path(args.output_dir)
+            logger.info(f"Adding output artifact to DVC: {output_path}")
+            subprocess.run(["dvc", "add", str(output_path)], check=True)
             # mlflow.set_tag("output_artifact", output_path)
-            # logger.info("Pushing output artifact to remote DVC storage")
-            # subprocess.run(["dvc", "push"], check=True)
+            logger.info("Pushing output artifact to remote DVC storage")
+            subprocess.run(["dvc", "push", "-v", output_path], check=True)
 
             # --- Optionally also log artifact path to MLflow ---
-            # mlflow.log_artifact(output_path)
+            mlflow.log_artifact(str(output_path), artifact_path="inference_result")
         except subprocess.CalledProcessError as e:
             logger.error(f"DVC command failed: {e}")
             raise
