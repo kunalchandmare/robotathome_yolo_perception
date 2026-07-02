@@ -2,3 +2,4 @@
 /src/download/data
 data/*
 !data/*.dvc
+mlruns/
