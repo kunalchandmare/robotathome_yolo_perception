@@ -35,6 +35,12 @@ download → annotation_convert → split → training → inference
 
 ---
 
+## Experiments 
+Snapshot of few runs executed on mlflow and can be analysed on default ui avaiable as shown below
+<img width="1201" height="660" alt="image" src="https://github.com/user-attachments/assets/91e5986e-e3fe-4c77-b44f-d740fda113ff" />
+
+
+
 ## Project Structure
 
 ```
